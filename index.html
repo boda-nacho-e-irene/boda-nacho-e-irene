@@ -4,93 +4,411 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Confirmación</title>
+<meta name="theme-color" content="#E9E5D9">
+<title>Confirmación de asistencia</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
-  button { font: inherit; padding: .75rem 1.5rem; margin-right: .5rem; cursor: pointer; }
-  button[disabled] { opacity: .5; cursor: default; }
-  .aviso { color: #b00; }
+  :root {
+    --tinta:   #26302B;   /* verde-negro de la sombra de la nave */
+    --piedra:  #E9E5D9;   /* caliza fría, fondo */
+    --hueco:   #D8D2C2;   /* juntas y bordes */
+    --ocre:    #9C6B24;   /* piedra románica a última hora de la tarde */
+    --musgo:   #5B6B57;   /* texto secundario */
+    --error:   #8A3324;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--piedra);
+    color: var(--tinta);
+    font-family: Karla, "Segoe UI", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  main {
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* ---------- portada ---------- */
+
+  .arco { display: block; margin: 0 auto 1.75rem; width: 88px; height: auto; }
+  .arco path { fill: none; stroke: var(--ocre); stroke-width: 1.25; }
+
+  .novios {
+    text-align: center;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.0625rem;
+    letter-spacing: .14em;
+    color: var(--ocre);
+    margin: 0 0 2.25rem;
+  }
+
+  .nombre {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(2.4rem, 13vw, 3.9rem);
+    line-height: 1.05;
+    text-align: center;
+    margin: 0 0 1.25rem;
+    text-wrap: balance;
+  }
+
+  .cita {
+    text-align: center;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--musgo);
+    margin: 0 0 3rem;
+  }
+  .cita strong { font-weight: 400; color: var(--tinta); }
+
+  /* ---------- formulario ---------- */
+
+  .pregunta {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    font-weight: 400;
+    text-align: center;
+    margin: 0 0 1.25rem;
+  }
+
+  .eleccion { display: grid; gap: .625rem; margin-bottom: 2rem; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+
+  .opcion {
+    background: transparent;
+    border: 1px solid var(--hueco);
+    padding: .9rem 1rem;
+    min-height: 3rem;
+    text-align: center;
+    transition: border-color .18s, background-color .18s;
+  }
+  .opcion:hover { border-color: var(--musgo); }
+  .opcion[aria-pressed="true"] {
+    border-color: var(--tinta);
+    background: rgba(38,48,43,.055);
+    font-weight: 600;
+  }
+
+  .detalle {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height .45s ease, opacity .3s ease;
+  }
+  .detalle.abierto { max-height: 70rem; opacity: 1; }
+
+  fieldset { border: 0; padding: 0; margin: 0 0 1.75rem; }
+
+  legend {
+    padding: 0;
+    font-size: .9375rem;
+    font-weight: 600;
+    margin-bottom: .25rem;
+  }
+
+  .ayuda { font-size: .875rem; color: var(--musgo); margin: 0 0 .875rem; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+  .chip {
+    background: transparent;
+    border: 1px solid var(--hueco);
+    padding: .5rem .875rem;
+    font-size: .9375rem;
+    transition: border-color .18s, background-color .18s;
+  }
+  .chip[aria-pressed="true"] {
+    border-color: var(--ocre);
+    background: rgba(156,107,36,.1);
+    font-weight: 500;
+  }
+
+  label.campo { display: block; font-size: .9375rem; font-weight: 600; margin-bottom: .375rem; }
+
+  input[type="text"], textarea {
+    font: inherit;
+    width: 100%;
+    background: rgba(255,255,255,.45);
+    border: 1px solid var(--hueco);
+    border-radius: 2px;
+    padding: .7rem .75rem;
+    color: inherit;
+  }
+  textarea { resize: vertical; min-height: 4.5rem; }
+
+  .enviar {
+    display: block;
+    width: 100%;
+    background: var(--tinta);
+    color: var(--piedra);
+    border: 1px solid var(--tinta);
+    padding: 1rem;
+    min-height: 3.25rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    transition: opacity .18s;
+  }
+  .enviar:hover { opacity: .88; }
+  .enviar[disabled] { opacity: .45; cursor: default; }
+
+  :focus-visible { outline: 2px solid var(--ocre); outline-offset: 2px; }
+
+  .estado { text-align: center; font-size: .9375rem; margin: 1rem 0 0; min-height: 1.5rem; }
+  .estado.mal { color: var(--error); }
+
+  .centrado { text-align: center; padding: 4rem 0; color: var(--musgo); }
+
+  /* ---------- entrada ---------- */
+
+  .entra { animation: subir .7s ease both; }
+  .arco path { stroke-dasharray: 340; stroke-dashoffset: 340; animation: trazo 1.1s ease forwards; }
+
+  @keyframes subir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes trazo { to { stroke-dashoffset: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .arco path { stroke-dashoffset: 0; }
+    .detalle { transition: none; }
+  }
 </style>
 </head>
 <body>
 
-<div id="app">Cargando…</div>
+<main id="app"><p class="centrado">Abriendo la invitación…</p></main>
 
 <script>
-// Pega aquí la URL de la implementación de Apps Script (termina en /exec)
+/* Bloque aparte y en ES5: si el navegador del invitado no entiende el script
+   principal, al menos vemos el error en pantalla en vez de quedarnos colgados. */
+window.onerror = function (msg, src, linea) {
+  var a = document.getElementById('app');
+  if (a) { a.innerHTML = '<p class="centrado">Error: ' + msg + ' (línea ' + linea + ')</p>'; }
+  return true;
+};
+</script>
+
+<script>
+/* ====== EDITA ESTO ====== */
 const API = 'https://script.google.com/macros/s/AKfycbwbc0Pjn4bR56OXYij78LiocjDwX6uwOuk56LzI4mnd1OjZcf4R6z7_2ZEBXJFIjcJImA/exec';
 
-const app = document.getElementById('app');
-const token = new URLSearchParams(location.search).get('i');
+var BODA = {
+  novios: 'Irene e Ignacio',
+  fecha:  '17 de Julio de 2027',
+  lugar:  'Convento de Mave, Palencia',
+  hora:   '12:30'
+};
 
-function pintarError(texto) {
-  app.innerHTML = '<p class="aviso"></p>';
-  app.querySelector('p').textContent = texto;
+var ALERGENOS = [
+  'Gluten', 'Lactosa', 'Frutos secos', 'Marisco',
+  'Pescado', 'Huevo', 'Soja', 'Vegetariano', 'Vegano'
+];
+/* ======================== */
+
+var app = document.getElementById('app');
+var token = (function () {
+  var m = location.search.match(/[?&]i=([^&]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+})();
+
+var elegido = null;          // true | false | null
+var marcados = {};           // alérgenos seleccionados
+
+/* --- red, con XMLHttpRequest para no depender de fetch ni de promesas --- */
+function pedir(metodo, url, cuerpo, alTerminar) {
+  var x = new XMLHttpRequest();
+  x.open(metodo, url, true);
+  x.timeout = 20000;
+  if (metodo === 'POST') {
+    // text/plain a propósito: application/json dispara el preflight CORS,
+    // que Apps Script no responde.
+    x.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+  }
+  x.onreadystatechange = function () {
+    if (x.readyState !== 4) return;
+    var d = null;
+    try { d = JSON.parse(x.responseText); } catch (e) {}
+    alTerminar(d);
+  };
+  x.onerror = function () { alTerminar(null); };
+  x.ontimeout = function () { alTerminar(null); };
+  x.send(cuerpo || null);
 }
 
-async function cargar() {
+function escapar(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function pantalla(html) { app.innerHTML = html; }
+
+function aviso(texto) {
+  pantalla('<p class="centrado">' + escapar(texto) + '</p>');
+}
+
+/* --- carga --- */
+function cargar() {
   if (!token) {
-    pintarError('Este enlace no está completo. Escríbenos y te mandamos el tuyo.');
+    aviso('Este enlace está incompleto. Escríbenos y te mandamos el tuyo.');
     return;
   }
-
-  try {
-    const r = await fetch(API + '?token=' + encodeURIComponent(token));
-    const d = await r.json();
-
-    if (!d.ok) {
-      pintarError('No encontramos este enlace. Escríbenos y lo revisamos.');
-      return;
-    }
+  pedir('GET', API + '?token=' + encodeURIComponent(token), null, function (d) {
+    if (!d) { aviso('No hemos podido conectar. Prueba otra vez en un momento.'); return; }
+    if (!d.ok) { aviso('No encontramos este enlace. Escríbenos y lo revisamos.'); return; }
     pintar(d);
-  } catch (err) {
-    pintarError('No hemos podido conectar. Prueba otra vez en un momento.');
-  }
+  });
 }
 
 function pintar(d) {
-  app.innerHTML =
-    '<h1></h1>' +
-    '<p>¿Nos acompañas?</p>' +
-    '<p><button id="si">Sí, allí estaré</button>' +
-    '<button id="no">No podré ir</button></p>' +
-    '<p id="estado"></p>';
-
-  app.querySelector('h1').textContent = d.nombre;
-
-  if (d.asiste) {
-    document.getElementById('estado').textContent =
-      d.asiste === 'SI' ? 'Tenemos tu sí. Puedes cambiarlo cuando quieras.'
-                        : 'Tenemos tu no. Puedes cambiarlo cuando quieras.';
+  var chips = '';
+  for (var i = 0; i < ALERGENOS.length; i++) {
+    chips += '<button type="button" class="chip" data-a="' + escapar(ALERGENOS[i]) + '" aria-pressed="false">'
+           + escapar(ALERGENOS[i]) + '</button>';
   }
 
-  document.getElementById('si').onclick = () => responder(true);
-  document.getElementById('no').onclick = () => responder(false);
+  pantalla(
+    '<div class="entra">' +
+      '<svg class="arco" viewBox="0 0 120 132" aria-hidden="true">' +
+        '<path d="M4 130 L4 64 A56 56 0 0 1 116 64 L116 130"/>' +
+      '</svg>' +
+      '<p class="novios">' + escapar(BODA.novios) + '</p>' +
+      '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
+      '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong><br>' +
+        'a las ' + escapar(BODA.hora) + ' en ' + escapar(BODA.lugar) + '</p>' +
+
+      '<p class="pregunta">¿Nos acompañas?</p>' +
+      '<div class="eleccion">' +
+        '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
+        '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
+      '</div>' +
+
+      '<div class="detalle" id="detalle">' +
+        '<fieldset>' +
+          '<legend>Alergias e intolerancias</legend>' +
+          '<p class="ayuda">Marca lo que necesites. Se lo pasamos tal cual a la cocina.</p>' +
+          '<div class="chips" id="chips">' + chips + '</div>' +
+        '</fieldset>' +
+        '<fieldset>' +
+          '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
+          '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
+        '</fieldset>' +
+      '</div>' +
+
+      '<fieldset>' +
+        '<label class="campo" for="nota">Un mensaje para nosotros</label>' +
+        '<textarea id="nota" placeholder="Opcional"></textarea>' +
+      '</fieldset>' +
+
+      '<button type="button" class="enviar" id="enviar" disabled>Enviar confirmación</button>' +
+      '<p class="estado" id="estado"></p>' +
+    '</div>'
+  );
+
+  document.getElementById('si').onclick = function () { elegir(true); };
+  document.getElementById('no').onclick = function () { elegir(false); };
+  document.getElementById('enviar').onclick = enviar;
+
+  var botonesChip = document.getElementById('chips').getElementsByTagName('button');
+  for (var j = 0; j < botonesChip.length; j++) {
+    botonesChip[j].onclick = function () {
+      var nombre = this.getAttribute('data-a');
+      var activo = this.getAttribute('aria-pressed') === 'true';
+      this.setAttribute('aria-pressed', activo ? 'false' : 'true');
+      if (activo) { delete marcados[nombre]; } else { marcados[nombre] = true; }
+    };
+  }
+
+  restaurar(d);
 }
 
-async function responder(asiste) {
-  const botones = app.querySelectorAll('button');
-  const estado = document.getElementById('estado');
-  botones.forEach(b => b.disabled = true);
+/* Si ya había respondido antes, dejamos su respuesta puesta. */
+function restaurar(d) {
+  if (d.alergenos) {
+    var previos = String(d.alergenos).split(',');
+    var botones = document.getElementById('chips').getElementsByTagName('button');
+    for (var i = 0; i < previos.length; i++) {
+      var v = previos[i].replace(/^\s+|\s+$/g, '');
+      for (var j = 0; j < botones.length; j++) {
+        if (botones[j].getAttribute('data-a') === v) {
+          botones[j].setAttribute('aria-pressed', 'true');
+          marcados[v] = true;
+        }
+      }
+    }
+  }
+  if (d.nota) { document.getElementById('nota').value = d.nota; }
+  if (d.asiste === 'SI') { elegir(true); }
+  else if (d.asiste === 'NO') { elegir(false); }
+  if (d.asiste) {
+    document.getElementById('estado').textContent =
+      'Ya tenemos tu respuesta. Puedes cambiarla cuando quieras.';
+  }
+}
+
+function elegir(asiste) {
+  elegido = asiste;
+  document.getElementById('si').setAttribute('aria-pressed', asiste ? 'true' : 'false');
+  document.getElementById('no').setAttribute('aria-pressed', asiste ? 'false' : 'true');
+
+  var detalle = document.getElementById('detalle');
+  if (asiste) { detalle.className = 'detalle abierto'; }
+  else { detalle.className = 'detalle'; }
+
+  document.getElementById('enviar').disabled = false;
+}
+
+function enviar() {
+  if (elegido === null) return;
+
+  var boton = document.getElementById('enviar');
+  var estado = document.getElementById('estado');
+  boton.disabled = true;
+  estado.className = 'estado';
   estado.textContent = 'Guardando…';
 
-  try {
-    // text/plain evita el preflight CORS, que Apps Script no responde.
-    const r = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ token: token, asiste: asiste })
-    });
-    const d = await r.json();
+  var lista = [];
+  for (var k in marcados) { if (marcados.hasOwnProperty(k)) lista.push(k); }
+  var otros = document.getElementById('otros').value.replace(/^\s+|\s+$/g, '');
+  if (otros) lista.push(otros);
 
-    estado.textContent = d.ok
-      ? (asiste ? 'Guardado. Nos vemos allí.' : 'Guardado. Te echaremos de menos.')
-      : 'No se ha podido guardar. Inténtalo otra vez.';
-  } catch (err) {
-    estado.textContent = 'No se ha podido guardar. Inténtalo otra vez.';
-  } finally {
-    botones.forEach(b => b.disabled = false);
-  }
+  var cuerpo = JSON.stringify({
+    token: token,
+    asiste: elegido,
+    alergenos: elegido ? lista.join(', ') : '',
+    nota: document.getElementById('nota').value
+  });
+
+  pedir('POST', API, cuerpo, function (d) {
+    boton.disabled = false;
+    if (d && d.ok) {
+      estado.textContent = elegido
+        ? 'Guardado. Nos vemos allí.'
+        : 'Guardado. Te echaremos de menos.';
+    } else {
+      estado.className = 'estado mal';
+      estado.textContent = 'No se ha podido guardar. Inténtalo otra vez.';
+    }
+  });
 }
 
 cargar();
