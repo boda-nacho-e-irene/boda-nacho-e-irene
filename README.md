@@ -28,6 +28,29 @@ La constante `API` al principio del `<script>` de `index.html` apunta a la URL
 `/exec` del Apps Script. Al cambiar el backend hay que **crear una nueva
 implementación** (o subir versión en la existente); guardar el `.gs` no basta.
 
+## Fotos
+
+Van en `img/`, en `.webp`, y se listan en la constante `FOTOS` del `<script>`
+de `index.html`. Con la lista vacía no se pinta nada.
+
+- Nombres en minúscula, sin espacios ni acentos: acaban en una URL.
+- Ruta relativa (`img/foo.webp`). La absoluta da 404 en repos de proyecto,
+  igual que la barra antes del `?`.
+- 1200 px de ancho sobran: la columna mide 432 px como mucho, 864 px en
+  pantallas 2x. Menos de 200 KB por foto; los invitados la abren con datos.
+- `ancho` y `alto` son los píxeles reales del archivo. Sin ellos la página
+  da saltos según van cargando.
+
+Convertir y quitar EXIF (las fotos de móvil llevan las coordenadas GPS de
+casa) de una tacada, con ImageMagick:
+
+```
+magick mogrify -path img -resize 1200x1200\> -quality 75 -strip -format webp originales/*.jpg
+```
+
+El `<meta robots>` mantiene la página fuera de los buscadores, pero
+cualquiera con la URL puede descargar las fotos directamente.
+
 ## Notas
 
 - Al abrir, un sobre cerrado tapa la página hasta que el invitado toca. Lleva su

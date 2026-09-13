@@ -11,6 +11,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
 
+<!-- Descomentar con la ruta de la primera foto de FOTOS: empieza a bajarla
+     sin esperar al backend. Solo la primera; precargarlas todas le quita
+     ancho de banda al resto de la página. -->
+<!-- <link rel="preload" as="image" href="img/PRIMERA.webp"> -->
+
 <style>
   :root {
     --tinta:   #26302B;   /* verde-negro de la sombra de la nave */
@@ -73,6 +78,29 @@
     margin: 0 0 3rem;
   }
   .cita strong { font-weight: 400; color: var(--tinta); }
+
+  /* ---------- fotos ---------- */
+
+  .galeria { display: grid; gap: .75rem; margin: 0 0 3rem; }
+  .galeria figure { margin: 0; }
+
+  .foto {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 2px;
+    /* el hueco queda del color de las juntas mientras la foto baja */
+    background: var(--hueco);
+  }
+
+  .pie {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-style: italic;
+    font-size: 1rem;
+    text-align: center;
+    color: var(--musgo);
+    margin: .5rem 0 0;
+  }
 
   /* ---------- formulario ---------- */
 
@@ -407,6 +435,24 @@ var ALERGENOS = [
   'Gluten', 'Lactosa', 'Frutos secos', 'Marisco',
   'Pescado', 'Huevo', 'Soja', 'Vegetariano', 'Vegano'
 ];
+
+/* Fotos de la invitación. Van en la carpeta img/ del repo, con la ruta
+   relativa: en un repo de proyecto la página cuelga de /REPO/, así que
+   'img/foo.webp' funciona y '/img/foo.webp' da 404.
+
+   'ancho' y 'alto' son los píxeles reales del archivo; el navegador
+   reserva el hueco con ellos y la página no pega saltos al cargar.
+   'pie' es opcional.
+
+   var FOTOS = [
+     { src: 'img/mave-claustro.webp', ancho: 1200, alto: 800,
+       alt: 'El claustro del convento de Mave' },
+     { src: 'img/irene-ignacio.webp', ancho: 1200, alto: 1600,
+       alt: 'Irene e Ignacio en el mirador', pie: 'El día que lo decidimos' }
+   ];
+
+   Lista vacía: no se pinta nada. */
+var FOTOS = [];
 /* ======================== */
 
 var app = document.getElementById('app');
@@ -494,6 +540,28 @@ function escapar(s) {
     .replace(/"/g, '&quot;');
 }
 
+/* La invitación se pinta detrás del sobre, así que la primera foto tiene
+   los ~1,9 s de la animación para bajar y ya está puesta cuando el sobre
+   se aparta. Las demás esperan a que el invitado baje hasta ellas. */
+function fotos(lista) {
+  if (!lista || !lista.length) { return ''; }
+
+  var html = '<div class="galeria">';
+  for (var i = 0; i < lista.length; i++) {
+    var f = lista[i];
+    var img = '<img class="foto" src="' + escapar(f.src) + '"'
+            + ' width="' + escapar(f.ancho) + '" height="' + escapar(f.alto) + '"'
+            + ' alt="' + escapar(f.alt) + '"'
+            + ' loading="' + (i === 0 ? 'eager' : 'lazy') + '"'
+            + ' decoding="async">';
+    html += f.pie
+      ? '<figure>' + img +
+        '<figcaption class="pie">' + escapar(f.pie) + '</figcaption></figure>'
+      : img;
+  }
+  return html + '</div>';
+}
+
 function pantalla(html) {
   app.innerHTML = html;
   if (sobreAbierto) { animarEntrada(); }
@@ -533,6 +601,8 @@ function pintar(d) {
       '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
       '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong><br>' +
         'a las ' + escapar(BODA.hora) + ' en ' + escapar(BODA.lugar) + '</p>' +
+
+      fotos(FOTOS) +
 
       '<p class="pregunta">¿Nos acompañas?</p>' +
       '<div class="eleccion">' +
