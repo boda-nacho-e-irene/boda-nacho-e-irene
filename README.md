@@ -28,6 +28,20 @@ La constante `API` al principio del `<script>` de `index.html` apunta a la URL
 `/exec` del Apps Script. Al cambiar el backend hay que **crear una nueva
 implementación** (o subir versión en la existente); guardar el `.gs` no basta.
 
+## Secciones e índice lateral
+
+La invitación es una sola página partida en `<section class="seccion" id="...">`.
+El índice se genera desde la constante `SECCIONES` del `<script>`: cada entrada
+es `{ id, titulo }` y se descarta sola si ese `id` no existe en la página.
+
+Para añadir una sección: crea el `<section>` dentro de `pintar()` y añade su
+entrada a `SECCIONES` en el mismo orden en que aparece.
+
+En pantallas de 62rem o más el índice es un raíl fijo a la izquierda del texto;
+por debajo es un panel que se abre con el botón de la esquina superior. La
+sección activa se marca con `aria-current`, midiendo las secciones en cada
+`scroll`: manda la última cuyo borde superior haya pasado el 42% de la pantalla.
+
 ## Notas
 
 - Al abrir, un sobre cerrado tapa la página hasta que el invitado toca. Lleva su
