@@ -1,0 +1,5 @@
+- Avoid running in browser
+- Use color #464E47 for text
+- use color #4BB9EC, #FFA600, #8FC243 for details
+- USe color #F0DAB6 for background
+- every new section must be added as a link to the lateral navigation menú

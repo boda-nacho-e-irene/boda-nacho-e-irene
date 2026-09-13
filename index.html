@@ -23,6 +23,8 @@
 
   * { box-sizing: border-box; }
 
+  html { scroll-behavior: smooth; }
+
   body {
     margin: 0;
     background: var(--piedra);
@@ -37,6 +39,22 @@
     max-width: 30rem;
     margin: 0 auto;
     padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* ---------- secciones ---------- */
+
+  /* El botón del índice ocupa la esquina superior en móvil: dejamos hueco
+     para que al saltar a una sección el título no quede debajo. */
+  .seccion { scroll-margin-top: 4.5rem; }
+  .seccion + .seccion { margin-top: 3.75rem; }
+
+  .titulo {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    font-weight: 400;
+    text-align: center;
+    margin: 0 0 1.25rem;
   }
 
   /* ---------- portada ---------- */
@@ -70,32 +88,151 @@
     font-size: 1.25rem;
     line-height: 1.5;
     color: var(--musgo);
-    margin: 0 0 3rem;
+    margin: 0;
   }
   .cita strong { font-weight: 400; color: var(--tinta); }
 
-  /* ---------- secciones ---------- */
+  /* ---------- el día ---------- */
 
-  .seccion { margin: 0 0 3rem; }
+  .datos { margin: 0; }
+  .datos > div {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0 1rem;
+    padding: .8rem 0;
+    border-top: 1px solid var(--hueco);
+  }
+  .datos > div:last-child { border-bottom: 1px solid var(--hueco); }
+  .datos dt {
+    font-size: .8125rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--musgo);
+    align-self: center;
+  }
+  .datos dd { margin: 0; }
 
-  /* una junta de piedra entre sección y sección */
-  .seccion::before {
-    content: '';
+  .mapa {
+    display: inline-block;
+    margin-top: 1.125rem;
+    font-size: .9375rem;
+    color: var(--ocre);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+
+  /* ---------- índice lateral ---------- */
+
+  /* Base = móvil: panel que entra desde la izquierda.
+     A partir de 62rem se convierte en un raíl fijo al lado del texto. */
+
+  .nav-boton {
+    position: fixed;
+    top: .75rem;
+    left: .75rem;
+    z-index: 40;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--piedra);
+    border: 1px solid var(--hueco);
+  }
+  .nav-boton span {
     display: block;
-    width: 2.5rem;
+    width: 18px;
     height: 1px;
-    background: var(--hueco);
-    margin: 0 auto 1.75rem;
+    background: var(--tinta);
+    transition: transform .25s ease, opacity .2s ease;
+  }
+  .nav-boton span + span { margin-top: 5px; }
+  .nav-boton[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .nav-boton[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .nav-boton[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .nav-velo {
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: 30;
+    background: rgba(38,48,43,.35);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+  }
+  .nav-velo.visible { opacity: 1; visibility: visible; }
+
+  .nav {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 35;
+    width: min(76vw, 16rem);
+    padding: 4.75rem 1.5rem 2rem;
+    background: var(--piedra);
+    border-right: 1px solid var(--hueco);
+    overflow-y: auto;
+    /* visibility apagada: con el panel cerrado los enlaces salen del orden
+       de tabulación en vez de quedarse fuera de pantalla y enfocables. */
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform .32s ease, visibility .32s ease;
+  }
+  .nav.abierto { visibility: visible; transform: none; }
+
+  .nav ol { list-style: none; margin: 0; padding: 0; }
+  .nav li + li { margin-top: .125rem; }
+
+  .nav-enlace {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .55rem 0;
+    color: var(--musgo);
+    text-decoration: none;
+    font-size: .8125rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    transition: color .18s;
+  }
+  .nav-enlace:hover { color: var(--tinta); }
+
+  .nav-punto {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--musgo);
+    border-radius: 50%;
+    transition: background-color .22s, border-color .22s, transform .22s;
   }
 
-  .seccion-titulo {
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 1.6rem;
-    font-style: italic;
-    font-weight: 400;
-    text-align: center;
-    margin: 0 0 1.25rem;
+  .nav-enlace[aria-current="true"] { color: var(--tinta); }
+  .nav-enlace[aria-current="true"] .nav-punto {
+    background: var(--ocre);
+    border-color: var(--ocre);
+    transform: scale(1.35);
   }
+
+  @media (min-width: 62rem) {
+    .nav-boton, .nav-velo { display: none; }
+    .nav, .nav.abierto {
+      top: 50%;
+      bottom: auto;
+      left: 2rem;
+      left: max(1.5rem, calc(50vw - 25.5rem));
+      width: auto;
+      padding: 0;
+      background: none;
+      border: 0;
+      overflow: visible;
+      visibility: visible;
+      transform: translateY(-50%);
+    }
+    .seccion { scroll-margin-top: 2.5rem; }
+  }
+
+  /* ---------- formulario ---------- */
 
   .wip-linea { text-align: center; margin: -.5rem 0 1.25rem; }
 
@@ -233,6 +370,55 @@
   .estado.mal { color: var(--error); }
 
   .centrado { text-align: center; padding: 4rem 0; color: var(--musgo); }
+
+  /* ---------- cuenta atrás ---------- */
+
+  /* Columnas de ancho fijo: las cifras no mueven la maqueta al cambiar. */
+  .digitos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .5rem;
+    text-align: center;
+  }
+
+  .digitos .valor {
+    display: block;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 300;
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .digitos .rotulo {
+    display: block;
+    margin-top: .375rem;
+    font-size: .6875rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--musgo);
+  }
+
+  .hoy {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    text-align: center;
+    margin: 0;
+  }
+
+  /* Visible solo para lectores de pantalla. */
+  .solo-voz {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 
   /* ---------- sobre ---------- */
 
@@ -411,6 +597,7 @@
   @keyframes trazo { to { stroke-dashoffset: 0; } }
 
   @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
     * { animation: none !important; transition: none !important; }
     .arco path { stroke-dashoffset: 0; }
     .detalle { transition: none; }
@@ -433,6 +620,7 @@
   <p class="sobre-pista" id="sobre-pista"><span class="solo-tacto">Toca</span><span class="solo-raton">Haz clic</span> para abrir</p>
 </div>
 
+<div id="navegacion"></div>
 <main id="app"><p class="centrado">Abriendo la invitación…</p></main>
 
 <script>
@@ -457,11 +645,23 @@ var BODA = {
   fecha:  '17 de Julio de 2027',
   lugar:  'Convento de Mave, Palencia',
   hora:   '12:30',
-  // La misma fecha en formato máquina, para la cuenta atrás.
-  // Lleva el desfase horario de España en verano (+02:00) para que la cuenta
-  // sea la misma se mire desde donde se mire.
+  mapa:   'https://www.google.com/maps/search/?api=1&query=Convento%20de%20Mave%20Palencia',
+  // La misma fecha y hora de arriba, en formato máquina y con el desfase de
+  // España en julio (+02:00), para que la cuenta atrás salga bien también si
+  // alguien abre la invitación desde otro huso. Si cambias 'fecha' u 'hora',
+  // cambia esto también.
   iso:    '2027-07-17T12:30:00+02:00'
 };
+
+/* Índice lateral: el orden manda. Cada `id` tiene que existir en la página o
+   la entrada se descarta sola. Para añadir una sección, crea el
+   <section class="seccion" id="..."> dentro de pintar() y añádela aquí. */
+var SECCIONES = [
+  { id: 'inicio',       titulo: 'Inicio' },
+  { id: 'el-dia',       titulo: 'El día' },
+  { id: 'confirmar',    titulo: 'Confirmar' },
+  { id: 'cuenta-atras', titulo: 'Cuenta atrás' }
+];
 
 var ALERGENOS = [
   'Gluten', 'Lactosa', 'Frutos secos', 'Marisco',
@@ -613,8 +813,156 @@ function cargar() {
   });
 }
 
+/* ---------- cuenta atrás ---------- */
+
+/* Pasamos la fecha a milisegundos a mano, con su desfase, en vez de fiarnos de
+   cómo interpreta cada navegador una cadena de fecha. null si no encaja. */
+function momento(iso) {
+  var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})([+-])(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  var utc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+  var desfase = (+m[8] * 60 + +m[9]) * 60000 * (m[7] === '-' ? -1 : 1);
+  return utc - desfase;
+}
+
+var objetivoMs = momento(BODA.iso);
+
+/* Final del día de la boda, en la zona de la boda: hasta ahí decimos "hoy". */
+var finBodaMs = objetivoMs === null
+  ? null
+  : momento(BODA.iso.slice(0, 10) + 'T00:00:00' + BODA.iso.slice(19)) + 86400000;
+
+var reloj = null;
+
+function dos(n) { return (n < 10 ? '0' : '') + n; }
+
+function celda(valor, rotulo) {
+  return '<div><span class="valor">' + valor + '</span>' +
+         '<span class="rotulo">' + rotulo + '</span></div>';
+}
+
+/* Pasado el día de la boda no hay nada que contar. Como la sección entonces no
+   se pinta, el índice lateral descarta su entrada él solo. */
+function hayCuenta() {
+  return objetivoMs !== null && Date.now() < finBodaMs;
+}
+
+function seccionCuenta() {
+  if (!hayCuenta()) return '';
+  return '<section class="seccion" id="cuenta-atras">' +
+           '<h2 class="titulo">Cuenta atrás</h2>' +
+           '<div id="cuenta"></div>' +
+         '</section>';
+}
+
+function pararCuenta() {
+  if (reloj) { clearInterval(reloj); reloj = null; }
+}
+
+function pintarCuenta() {
+  var caja = document.getElementById('cuenta');
+  if (!caja) { pararCuenta(); return; }          // la pantalla ya no es esta
+
+  /* Se recalcula contra el reloj real en cada tic: si el navegador frena el
+     intervalo en una pestaña de fondo, no acumulamos retraso. */
+  var restante = objetivoMs - Date.now();
+
+  if (restante <= 0) {
+    pararCuenta();
+    caja.innerHTML = '<p class="hoy">Hoy nos casamos</p>';
+    return;
+  }
+
+  var seg   = Math.floor(restante / 1000);
+  var dias  = Math.floor(seg / 86400);
+  var horas = Math.floor((seg % 86400) / 3600);
+  var mins  = Math.floor((seg % 3600) / 60);
+  var segs  = seg % 60;
+
+  caja.innerHTML =
+    '<div class="digitos" aria-hidden="true">' +
+      celda(dias,       dias  === 1 ? 'día'  : 'días') +
+      celda(dos(horas), horas === 1 ? 'hora' : 'horas') +
+      celda(dos(mins),  'min') +
+      celda(dos(segs),  'seg') +
+    '</div>' +
+    /* Las cifras van ocultas al lector de pantalla: cambian cada segundo y no
+       aportarían nada leídas. Esta frase, que solo cambia de día en día, sí. */
+    '<p class="solo-voz">' + (dias === 0
+      ? 'Falta menos de un día para la boda.'
+      : 'Faltan ' + dias + (dias === 1 ? ' día' : ' días') + ' para la boda.') + '</p>';
+}
+
+function arrancarCuenta() {
+  pararCuenta();
+  if (!document.getElementById('cuenta')) return;
+  pintarCuenta();
+  if (Date.now() < objetivoMs) { reloj = setInterval(pintarCuenta, 1000); }
+}
+
 function pintar(d) {
-  pantalla('<div id="contenido">' + portada(d) + secciones() + '</div>');
+  var chips = '';
+  for (var i = 0; i < ALERGENOS.length; i++) {
+    chips += '<button type="button" class="chip" data-a="' + escapar(ALERGENOS[i]) + '" aria-pressed="false">'
+           + escapar(ALERGENOS[i]) + '</button>';
+  }
+
+  pantalla(
+    '<div id="contenido">' +
+
+      '<section class="seccion" id="inicio">' +
+        '<svg class="arco" viewBox="0 0 120 132" aria-hidden="true">' +
+          '<path d="M4 130 L4 64 A56 56 0 0 1 116 64 L116 130"/>' +
+        '</svg>' +
+        '<p class="novios">' + escapar(BODA.novios) + '</p>' +
+        '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
+        '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong></p>' +
+      '</section>' +
+
+      '<section class="seccion" id="el-dia">' +
+        '<h2 class="titulo">El día</h2>' +
+        '<dl class="datos">' +
+          '<div><dt>Fecha</dt><dd>' + escapar(BODA.fecha) + '</dd></div>' +
+          '<div><dt>Hora</dt><dd>' + escapar(BODA.hora) + '</dd></div>' +
+          '<div><dt>Lugar</dt><dd>' + escapar(BODA.lugar) + '</dd></div>' +
+        '</dl>' +
+        (BODA.mapa
+          ? '<p style="margin:0"><a class="mapa" href="' + escapar(BODA.mapa) + '" target="_blank" rel="noopener">Ver cómo llegar</a></p>'
+          : '') +
+      '</section>' +
+
+      '<section class="seccion" id="confirmar">' +
+        '<h2 class="titulo">¿Nos acompañas?</h2>' +
+        '<div class="eleccion">' +
+          '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
+          '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
+        '</div>' +
+
+        '<div class="detalle" id="detalle">' +
+          '<fieldset>' +
+            '<legend>Alergias e intolerancias</legend>' +
+            '<p class="ayuda">Marca lo que necesites. Se lo pasamos tal cual a la cocina.</p>' +
+            '<div class="chips" id="chips">' + chips + '</div>' +
+          '</fieldset>' +
+          '<fieldset>' +
+            '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
+            '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
+          '</fieldset>' +
+        '</div>' +
+
+        '<fieldset>' +
+          '<label class="campo" for="nota">Un mensaje para nosotros</label>' +
+          '<textarea id="nota" placeholder="Opcional"></textarea>' +
+        '</fieldset>' +
+
+        '<button type="button" class="enviar" id="enviar" disabled>Enviar confirmación</button>' +
+        '<p class="estado" id="estado"></p>' +
+      '</section>' +
+
+      seccionCuenta() +
+
+    '</div>'
+  );
 
   document.getElementById('si').onclick = function () { elegir(true); };
   document.getElementById('no').onclick = function () { elegir(false); };
@@ -631,145 +979,96 @@ function pintar(d) {
   }
 
   arrancarCuenta();
+  montarIndice();
   restaurar(d);
 }
 
-function portada(d) {
-  return '<svg class="arco" viewBox="0 0 120 132" aria-hidden="true">' +
-           '<path d="M4 130 L4 64 A56 56 0 0 1 116 64 L116 130"/>' +
-         '</svg>' +
-         '<p class="novios">' + escapar(BODA.novios) + '</p>' +
-         '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
-         '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong><br>' +
-           'a las ' + escapar(BODA.hora) + ' en ' + escapar(BODA.lugar) + '</p>';
-}
+/* --- índice lateral --- */
+function montarIndice() {
+  var presentes = [];
+  var lista = '';
 
-/* --- secciones --- */
-
-function marco(s, cuerpo, enObras) {
-  return '<section class="seccion" id="sec-' + escapar(s.id) + '">' +
-           '<h2 class="seccion-titulo">' + escapar(s.titulo) + '</h2>' +
-           (enObras ? '<p class="wip-linea"><span class="wip">En preparación</span></p>' : '') +
-           cuerpo +
-         '</section>';
-}
-
-function secciones() {
-  var html = '';
   for (var i = 0; i < SECCIONES.length; i++) {
-    var s = SECCIONES[i];
-    if (s.tipo === 'wip') {
-      html += marco(s, '<p class="promesa">' + escapar(s.texto) + '</p>', true);
-    } else if (s.tipo === 'cuenta') {
-      html += marco(s, cuerpoCuenta(), false);
-    } else if (s.tipo === 'rsvp') {
-      html += marco(s, cuerpoRsvp(), false);
-    } else if (s.tipo === 'alergenos') {
-      // El envoltorio es lo que se pliega: así la sección entera (título y
-      // junta incluidos) desaparece mientras nadie haya dicho que sí.
-      html += '<div class="detalle" id="detalle">' + marco(s, cuerpoAlergenos(), false) + '</div>';
-    } else if (s.tipo === 'cierre') {
-      html += cuerpoCierre();
+    if (!document.getElementById(SECCIONES[i].id)) continue;
+    presentes.push(SECCIONES[i].id);
+    lista += '<li><a class="nav-enlace" href="#' + escapar(SECCIONES[i].id) + '">'
+           + '<span class="nav-punto" aria-hidden="true"></span>'
+           + '<span>' + escapar(SECCIONES[i].titulo) + '</span></a></li>';
+  }
+
+  // Con una sola sección el índice sobra.
+  if (presentes.length < 2) return;
+
+  document.getElementById('navegacion').innerHTML =
+    '<button type="button" class="nav-boton" id="nav-boton" aria-expanded="false"' +
+      ' aria-controls="nav-indice" aria-label="Índice de la invitación">' +
+      '<span></span><span></span><span></span>' +
+    '</button>' +
+    '<div class="nav-velo" id="nav-velo"></div>' +
+    '<nav class="nav" id="nav-indice" aria-label="Secciones de la invitación">' +
+      '<ol>' + lista + '</ol>' +
+    '</nav>';
+
+  var boton = document.getElementById('nav-boton');
+  var panel = document.getElementById('nav-indice');
+  var velo  = document.getElementById('nav-velo');
+  var enlaces = panel.getElementsByTagName('a');
+
+  function abrir(si) {
+    boton.setAttribute('aria-expanded', si ? 'true' : 'false');
+    panel.className = si ? 'nav abierto' : 'nav';
+    velo.className  = si ? 'nav-velo visible' : 'nav-velo';
+    document.body.style.overflow = si ? 'hidden' : '';
+  }
+
+  boton.onclick = function () { abrir(boton.getAttribute('aria-expanded') !== 'true'); };
+  velo.onclick  = function () { abrir(false); };
+  for (var j = 0; j < enlaces.length; j++) {
+    enlaces[j].onclick = function () { abrir(false); };
+  }
+  document.onkeydown = function (e) {
+    var esc = e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27;
+    if (esc && boton.getAttribute('aria-expanded') === 'true') { abrir(false); }
+  };
+  // Si el móvil abierto pasa a ancho de escritorio (giro de pantalla), el panel
+  // se convierte en raíl y hay que soltar el bloqueo del scroll.
+  window.onresize = function () {
+    if (window.innerWidth >= 992) { abrir(false); }
+    repasar();
+  };
+
+  function marcar(id) {
+    for (var k = 0; k < enlaces.length; k++) {
+      if (enlaces[k].getAttribute('href') === '#' + id) {
+        enlaces[k].setAttribute('aria-current', 'true');
+      } else {
+        enlaces[k].removeAttribute('aria-current');
+      }
     }
   }
-  return html;
-}
 
-function cuerpoCuenta() {
-  var unidades = [['dias', 'Días'], ['horas', 'Horas'], ['min', 'Minutos'], ['seg', 'Segundos']];
-  var html = '<div class="cuenta" id="cuenta">';
-  for (var i = 0; i < unidades.length; i++) {
-    html += '<div>' +
-              '<span class="cuenta-num" id="cuenta-' + unidades[i][0] + '">–</span>' +
-              '<span class="cuenta-eti">' + unidades[i][1] + '</span>' +
-            '</div>';
-  }
-  return html + '</div>';
-}
-
-function cuerpoRsvp() {
-  return '<div class="eleccion">' +
-           '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
-           '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
-         '</div>';
-}
-
-function cuerpoAlergenos() {
-  var chips = '';
-  for (var i = 0; i < ALERGENOS.length; i++) {
-    chips += '<button type="button" class="chip" data-a="' + escapar(ALERGENOS[i]) + '" aria-pressed="false">' +
-             escapar(ALERGENOS[i]) + '</button>';
-  }
-  return '<fieldset>' +
-           '<p class="ayuda">Marca lo que necesites. Se lo pasamos tal cual a la cocina.</p>' +
-           '<div class="chips" id="chips">' + chips + '</div>' +
-         '</fieldset>' +
-         '<fieldset>' +
-           '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
-           '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
-         '</fieldset>';
-}
-
-function cuerpoCierre() {
-  return '<div class="cierre">' +
-           '<fieldset>' +
-             '<label class="campo" for="nota">Un mensaje para nosotros</label>' +
-             '<textarea id="nota" placeholder="Opcional"></textarea>' +
-           '</fieldset>' +
-           '<button type="button" class="enviar" id="enviar" disabled>Enviar confirmación</button>' +
-           '<p class="estado" id="estado"></p>' +
-         '</div>';
-}
-
-/* --- cuenta atrás --- */
-
-/* BODA.iso a milisegundos. Lo parseamos a mano en vez de fiarlo a Date:
-   los navegadores viejos no se ponen de acuerdo con el desfase horario. */
-function fechaBoda() {
-  var m = String(BODA.iso).match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:([+-])(\d{2}):(\d{2}))?$/);
-  if (!m) return NaN;
-  var t = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
-  if (m[7]) {
-    var desfase = (+m[8] * 60 + +m[9]) * 60000;
-    t += (m[7] === '+' ? -desfase : desfase);
-  }
-  return t;
-}
-
-function dosCifras(n) { return (n < 10 ? '0' : '') + n; }
-
-function arrancarCuenta() {
-  var caja = document.getElementById('cuenta');
-  var destino = fechaBoda();
-  if (!caja || isNaN(destino)) return;
-
-  if (reloj) { clearInterval(reloj); reloj = null; }
-
-  var dias  = document.getElementById('cuenta-dias');
-  var horas = document.getElementById('cuenta-horas');
-  var min   = document.getElementById('cuenta-min');
-  var seg   = document.getElementById('cuenta-seg');
-
-  function tic() {
-    var falta = destino - new Date().getTime();
-    if (falta > 0) {
-      var s = Math.floor(falta / 1000);
-      dias.textContent  = Math.floor(s / 86400);
-      horas.textContent = dosCifras(Math.floor(s % 86400 / 3600));
-      min.textContent   = dosCifras(Math.floor(s % 3600 / 60));
-      seg.textContent   = dosCifras(s % 60);
+  /* Manda la última sección cuyo borde superior haya pasado la franja de
+     referencia. Con tres secciones sale más barato medirlas en cada scroll
+     que sostener un IntersectionObserver y su estado. */
+  function repasar() {
+    // La portada es corta: arriba del todo la franja ya cae en la sección
+    // siguiente, así que ahí mandamos la primera sin mirar nada más.
+    if ((window.pageYOffset || document.documentElement.scrollTop) < 8) {
+      marcar(presentes[0]);
       return;
     }
-    clearInterval(reloj);
-    reloj = null;
-    caja.className = '';
-    caja.innerHTML = '<p class="promesa">' +
-      (falta > -86400000 ? 'Hoy es el día.' : 'Gracias por acompañarnos.') + '</p>';
+    var franja = window.innerHeight * 0.42;
+    var mejor = presentes[0];
+    for (var n = 0; n < presentes.length; n++) {
+      if (document.getElementById(presentes[n]).getBoundingClientRect().top <= franja) {
+        mejor = presentes[n];
+      }
+    }
+    marcar(mejor);
   }
 
-  tic();
-  reloj = setInterval(tic, 1000);
+  window.onscroll = repasar;
+  repasar();
 }
 
 /* Si ya había respondido antes, dejamos su respuesta puesta. */
