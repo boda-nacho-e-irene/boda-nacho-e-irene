@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirmación</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+  button { font: inherit; padding: .75rem 1.5rem; margin-right: .5rem; cursor: pointer; }
+  button[disabled] { opacity: .5; cursor: default; }
+  .aviso { color: #b00; }
+</style>
+</head>
+<body>
+
+<div id="app">Cargando…</div>
+
+<script>
+// Pega aquí la URL de la implementación de Apps Script (termina en /exec)
+const API = 'https://script.google.com/macros/s/AKfycbwbc0Pjn4bR56OXYij78LiocjDwX6uwOuk56LzI4mnd1OjZcf4R6z7_2ZEBXJFIjcJImA/exec';
+
+const app = document.getElementById('app');
+const token = new URLSearchParams(location.search).get('i');
+
+function pintarError(texto) {
+  app.innerHTML = '<p class="aviso"></p>';
+  app.querySelector('p').textContent = texto;
+}
+
+async function cargar() {
+  if (!token) {
+    pintarError('Este enlace no está completo. Escríbenos y te mandamos el tuyo.');
+    return;
+  }
+
+  try {
+    const r = await fetch(API + '?token=' + encodeURIComponent(token));
+    const d = await r.json();
+
+    if (!d.ok) {
+      pintarError('No encontramos este enlace. Escríbenos y lo revisamos.');
+      return;
+    }
+    pintar(d);
+  } catch (err) {
+    pintarError('No hemos podido conectar. Prueba otra vez en un momento.');
+  }
+}
+
+function pintar(d) {
+  app.innerHTML =
+    '<h1></h1>' +
+    '<p>¿Nos acompañas?</p>' +
+    '<p><button id="si">Sí, allí estaré</button>' +
+    '<button id="no">No podré ir</button></p>' +
+    '<p id="estado"></p>';
+
+  app.querySelector('h1').textContent = d.nombre;
+
+  if (d.asiste) {
+    document.getElementById('estado').textContent =
+      d.asiste === 'SI' ? 'Tenemos tu sí. Puedes cambiarlo cuando quieras.'
+                        : 'Tenemos tu no. Puedes cambiarlo cuando quieras.';
+  }
+
+  document.getElementById('si').onclick = () => responder(true);
+  document.getElementById('no').onclick = () => responder(false);
+}
+
+async function responder(asiste) {
+  const botones = app.querySelectorAll('button');
+  const estado = document.getElementById('estado');
+  botones.forEach(b => b.disabled = true);
+  estado.textContent = 'Guardando…';
+
+  try {
+    // text/plain evita el preflight CORS, que Apps Script no responde.
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ token: token, asiste: asiste })
+    });
+    const d = await r.json();
+
+    estado.textContent = d.ok
+      ? (asiste ? 'Guardado. Nos vemos allí.' : 'Guardado. Te echaremos de menos.')
+      : 'No se ha podido guardar. Inténtalo otra vez.';
+  } catch (err) {
+    estado.textContent = 'No se ha podido guardar. Inténtalo otra vez.';
+  } finally {
+    botones.forEach(b => b.disabled = false);
+  }
+}
+
+cargar();
+</script>
+
+</body>
+</html>
