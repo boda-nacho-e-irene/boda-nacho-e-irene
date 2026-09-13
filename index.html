@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#E9E5D9">
-<title>Confirmación de asistencia</title>
+<title>Invitación</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,6 +28,8 @@
 
   * { box-sizing: border-box; }
 
+  html { scroll-behavior: smooth; }
+
   body {
     margin: 0;
     background: var(--piedra);
@@ -42,6 +44,22 @@
     max-width: 30rem;
     margin: 0 auto;
     padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* ---------- secciones ---------- */
+
+  /* El botón del índice ocupa la esquina superior en móvil: dejamos hueco
+     para que al saltar a una sección el título no quede debajo. */
+  .seccion { scroll-margin-top: 4.5rem; }
+  .seccion + .seccion { margin-top: 3.75rem; }
+
+  .titulo {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    font-weight: 400;
+    text-align: center;
+    margin: 0 0 1.25rem;
   }
 
   /* ---------- portada ---------- */
@@ -75,13 +93,14 @@
     font-size: 1.25rem;
     line-height: 1.5;
     color: var(--musgo);
-    margin: 0 0 3rem;
+    margin: 0;
   }
   .cita strong { font-weight: 400; color: var(--tinta); }
 
   /* ---------- fotos ---------- */
 
-  .galeria { display: grid; gap: .75rem; margin: 0 0 3rem; }
+  /* El margen inferior lo pone `.seccion + .seccion`, como en las demás. */
+  .galeria { display: grid; gap: .75rem; margin: 0; }
   .galeria figure { margin: 0; }
 
   .foto {
@@ -102,16 +121,170 @@
     margin: .5rem 0 0;
   }
 
-  /* ---------- formulario ---------- */
+  /* ---------- el día ---------- */
 
-  .pregunta {
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 1.6rem;
-    font-style: italic;
-    font-weight: 400;
-    text-align: center;
-    margin: 0 0 1.25rem;
+  .datos { margin: 0; }
+  .datos > div {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0 1rem;
+    padding: .8rem 0;
+    border-top: 1px solid var(--hueco);
   }
+  .datos > div:last-child { border-bottom: 1px solid var(--hueco); }
+  .datos dt {
+    font-size: .8125rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--musgo);
+    align-self: center;
+  }
+  .datos dd { margin: 0; }
+
+  .mapa {
+    display: inline-block;
+    margin-top: 1.125rem;
+    font-size: .9375rem;
+    color: var(--ocre);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+
+  /* ---------- índice lateral ---------- */
+
+  /* Base = móvil: panel que entra desde la izquierda.
+     A partir de 62rem se convierte en un raíl fijo al lado del texto. */
+
+  .nav-boton {
+    position: fixed;
+    top: .75rem;
+    left: .75rem;
+    z-index: 40;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--piedra);
+    border: 1px solid var(--hueco);
+  }
+  .nav-boton span {
+    display: block;
+    width: 18px;
+    height: 1px;
+    background: var(--tinta);
+    transition: transform .25s ease, opacity .2s ease;
+  }
+  .nav-boton span + span { margin-top: 5px; }
+  .nav-boton[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .nav-boton[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .nav-boton[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .nav-velo {
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: 30;
+    background: rgba(38,48,43,.35);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+  }
+  .nav-velo.visible { opacity: 1; visibility: visible; }
+
+  .nav {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 35;
+    width: min(76vw, 16rem);
+    padding: 4.75rem 1.5rem 2rem;
+    background: var(--piedra);
+    border-right: 1px solid var(--hueco);
+    overflow-y: auto;
+    /* visibility apagada: con el panel cerrado los enlaces salen del orden
+       de tabulación en vez de quedarse fuera de pantalla y enfocables. */
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform .32s ease, visibility .32s ease;
+  }
+  .nav.abierto { visibility: visible; transform: none; }
+
+  .nav ol { list-style: none; margin: 0; padding: 0; }
+  .nav li + li { margin-top: .125rem; }
+
+  .nav-enlace {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .55rem 0;
+    color: var(--musgo);
+    text-decoration: none;
+    font-size: .8125rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    transition: color .18s;
+  }
+  .nav-enlace:hover { color: var(--tinta); }
+
+  .nav-punto {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--musgo);
+    border-radius: 50%;
+    transition: background-color .22s, border-color .22s, transform .22s;
+  }
+
+  .nav-enlace[aria-current="true"] { color: var(--tinta); }
+  .nav-enlace[aria-current="true"] .nav-punto {
+    background: var(--ocre);
+    border-color: var(--ocre);
+    transform: scale(1.35);
+  }
+
+  @media (min-width: 62rem) {
+    .nav-boton, .nav-velo { display: none; }
+    .nav, .nav.abierto {
+      top: 50%;
+      bottom: auto;
+      left: 2rem;
+      left: max(1.5rem, calc(50vw - 25.5rem));
+      width: auto;
+      padding: 0;
+      background: none;
+      border: 0;
+      overflow: visible;
+      visibility: visible;
+      transform: translateY(-50%);
+    }
+    .seccion { scroll-margin-top: 2.5rem; }
+  }
+
+  /* ---------- secciones en obras ---------- */
+
+  .wip-linea { text-align: center; margin: -.5rem 0 1.25rem; }
+
+  .wip {
+    display: inline-block;
+    padding: .2rem .7rem;
+    border: 1px solid var(--hueco);
+    border-radius: 2px;
+    font-size: .6875rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ocre);
+  }
+
+  /* lo que irá aquí cuando la sección deje de estar en obras */
+  .promesa {
+    text-align: center;
+    color: var(--musgo);
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  /* ---------- formulario ---------- */
 
   .eleccion { display: grid; gap: .625rem; margin-bottom: 2rem; }
 
@@ -205,6 +378,55 @@
   .estado.mal { color: var(--error); }
 
   .centrado { text-align: center; padding: 4rem 0; color: var(--musgo); }
+
+  /* ---------- cuenta atrás ---------- */
+
+  /* Columnas de ancho fijo: las cifras no mueven la maqueta al cambiar. */
+  .digitos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .5rem;
+    text-align: center;
+  }
+
+  .digitos .valor {
+    display: block;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 300;
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .digitos .rotulo {
+    display: block;
+    margin-top: .375rem;
+    font-size: .6875rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--musgo);
+  }
+
+  .hoy {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    text-align: center;
+    margin: 0;
+  }
+
+  /* Visible solo para lectores de pantalla. */
+  .solo-voz {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 
   /* ---------- sobre ---------- */
 
@@ -383,6 +605,7 @@
   @keyframes trazo { to { stroke-dashoffset: 0; } }
 
   @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
     * { animation: none !important; transition: none !important; }
     .arco path { stroke-dashoffset: 0; }
     .detalle { transition: none; }
@@ -405,6 +628,7 @@
   <p class="sobre-pista" id="sobre-pista"><span class="solo-tacto">Toca</span><span class="solo-raton">Haz clic</span> para abrir</p>
 </div>
 
+<div id="navegacion"></div>
 <main id="app"><p class="centrado">Abriendo la invitación…</p></main>
 
 <script>
@@ -428,15 +652,63 @@ var BODA = {
   novios: 'Irene e Ignacio',
   fecha:  '17 de Julio de 2027',
   lugar:  'Convento de Mave, Palencia',
-  hora:   '12:30'
+  hora:   '12:30',
+  mapa:   'https://www.google.com/maps/search/?api=1&query=Convento%20de%20Mave%20Palencia',
+  // La misma fecha y hora de arriba, en formato máquina y con el desfase de
+  // España en julio (+02:00), para que la cuenta atrás salga bien también si
+  // alguien abre la invitación desde otro huso. Si cambias 'fecha' u 'hora',
+  // cambia esto también.
+  iso:    '2027-07-17T12:30:00+02:00'
 };
+
+/* Índice lateral: el orden manda, y es también el orden en que se pintan las
+   secciones. Cada `id` tiene que existir en la página o la entrada se descarta
+   sola. Para añadir una sección, crea el <section class="seccion" id="...">
+   dentro de pintar() (o mete una entrada en EN_OBRAS) y añádela aquí. */
+var SECCIONES = [
+  { id: 'inicio',        titulo: 'Inicio' },
+  { id: 'fotos',         titulo: 'Fotos' },
+  { id: 'el-dia',        titulo: 'El día' },
+  { id: 'cuenta-atras',  titulo: 'Cuenta atrás' },
+  { id: 'save-the-date', titulo: 'Save the date' },
+  { id: 'dedicatoria',   titulo: 'Dedicatoria' },
+  { id: 'confirmar',     titulo: 'Confirmar' },
+  { id: 'playlist',      titulo: 'Playlist' },
+  { id: 'transporte',    titulo: 'Transporte' },
+  { id: 'alojamiento',   titulo: 'Alojamiento' },
+  { id: 'sitio-web',     titulo: 'Sitio web' }
+];
+
+/* Secciones todavía en obras: de momento solo enseñan el sello y una promesa.
+   El `id` tiene que coincidir con el de SECCIONES y el orden de arriba es el
+   que manda; estas se pintan solas donde toque. Para rellenar una, bórrala de
+   aquí y escribe su <section> a mano en pintar(). */
+var EN_OBRAS = [
+  { id: 'save-the-date', titulo: 'Save the date',
+    texto: 'Estamos preparando el recordatorio para que guardes la fecha en tu calendario de un toque.' },
+
+  { id: 'dedicatoria', titulo: 'Dedicatoria',
+    texto: 'Aquí irán unas palabras nuestras. Todavía las estamos escribiendo.' },
+
+  { id: 'playlist', titulo: 'Sugerencias de playlist',
+    texto: 'Queremos que suene lo que te haga levantarte de la silla. Pronto podrás proponer canciones.' },
+
+  { id: 'transporte', titulo: 'Transporte',
+    texto: 'Estamos cerrando horarios y puntos de recogida. En cuanto los tengamos, los contamos aquí.' },
+
+  { id: 'alojamiento', titulo: 'Alojamiento',
+    texto: 'Estamos apalabrando habitaciones cerca del convento. Aquí verás los sitios y los precios.' },
+
+  { id: 'sitio-web', titulo: 'Sitio web',
+    texto: 'Habrá una página con todos los detalles de la boda. Sigue en obras.' }
+];
 
 var ALERGENOS = [
   'Gluten', 'Lactosa', 'Frutos secos', 'Marisco',
   'Pescado', 'Huevo', 'Soja', 'Vegetariano', 'Vegano'
 ];
 
-/* Fotos de la invitación. Van en la carpeta img/ del repo, con la ruta
+/* Fotos de la sección «Fotos». Van en la carpeta img/ del repo, con la ruta
    relativa: en un repo de proyecto la página cuelga de /REPO/, así que
    'img/foo.webp' funciona y '/img/foo.webp' da 404.
 
@@ -451,7 +723,7 @@ var ALERGENOS = [
        alt: 'Irene e Ignacio en el mirador', pie: 'El día que lo decidimos' }
    ];
 
-   Lista vacía: no se pinta nada. */
+   Lista vacía: no hay sección y el índice descarta su entrada. */
 var FOTOS = [];
 /* ======================== */
 
@@ -543,7 +815,7 @@ function escapar(s) {
 /* La invitación se pinta detrás del sobre, así que la primera foto tiene
    los ~1,9 s de la animación para bajar y ya está puesta cuando el sobre
    se aparta. Las demás esperan a que el invitado baje hasta ellas. */
-function fotos(lista) {
+function galeria(lista) {
   if (!lista || !lista.length) { return ''; }
 
   var html = '<div class="galeria">';
@@ -560,6 +832,16 @@ function fotos(lista) {
       : img;
   }
   return html + '</div>';
+}
+
+/* Sin fotos no hay sección, y el índice descarta su entrada él solo, igual
+   que con la cuenta atrás. */
+function seccionFotos() {
+  var g = galeria(FOTOS);
+  if (!g) return '';
+  return '<section class="seccion" id="fotos">' +
+           '<h2 class="titulo">Fotos</h2>' + g +
+         '</section>';
 }
 
 function pantalla(html) {
@@ -585,6 +867,109 @@ function cargar() {
   });
 }
 
+/* ---------- cuenta atrás ---------- */
+
+/* Pasamos la fecha a milisegundos a mano, con su desfase, en vez de fiarnos de
+   cómo interpreta cada navegador una cadena de fecha. null si no encaja. */
+function momento(iso) {
+  var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})([+-])(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  var utc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+  var desfase = (+m[8] * 60 + +m[9]) * 60000 * (m[7] === '-' ? -1 : 1);
+  return utc - desfase;
+}
+
+var objetivoMs = momento(BODA.iso);
+
+/* Final del día de la boda, en la zona de la boda: hasta ahí decimos "hoy". */
+var finBodaMs = objetivoMs === null
+  ? null
+  : momento(BODA.iso.slice(0, 10) + 'T00:00:00' + BODA.iso.slice(19)) + 86400000;
+
+var reloj = null;
+
+function dos(n) { return (n < 10 ? '0' : '') + n; }
+
+function celda(valor, rotulo) {
+  return '<div><span class="valor">' + valor + '</span>' +
+         '<span class="rotulo">' + rotulo + '</span></div>';
+}
+
+/* Pasado el día de la boda no hay nada que contar. Como la sección entonces no
+   se pinta, el índice lateral descarta su entrada él solo. */
+function hayCuenta() {
+  return objetivoMs !== null && Date.now() < finBodaMs;
+}
+
+function seccionCuenta() {
+  if (!hayCuenta()) return '';
+  return '<section class="seccion" id="cuenta-atras">' +
+           '<h2 class="titulo">Cuenta atrás</h2>' +
+           '<div id="cuenta"></div>' +
+         '</section>';
+}
+
+/* --- secciones en obras --- */
+
+/* Devuelve la sección de EN_OBRAS con ese id, o cadena vacía si ya no está
+   (que es como se apaga: se borra su entrada y se escribe la de verdad). */
+function seccionEnObras(id) {
+  for (var i = 0; i < EN_OBRAS.length; i++) {
+    if (EN_OBRAS[i].id !== id) continue;
+    return '<section class="seccion" id="' + escapar(id) + '">' +
+             '<h2 class="titulo">' + escapar(EN_OBRAS[i].titulo) + '</h2>' +
+             '<p class="wip-linea"><span class="wip">En preparación</span></p>' +
+             '<p class="promesa">' + escapar(EN_OBRAS[i].texto) + '</p>' +
+           '</section>';
+  }
+  return '';
+}
+
+function pararCuenta() {
+  if (reloj) { clearInterval(reloj); reloj = null; }
+}
+
+function pintarCuenta() {
+  var caja = document.getElementById('cuenta');
+  if (!caja) { pararCuenta(); return; }          // la pantalla ya no es esta
+
+  /* Se recalcula contra el reloj real en cada tic: si el navegador frena el
+     intervalo en una pestaña de fondo, no acumulamos retraso. */
+  var restante = objetivoMs - Date.now();
+
+  if (restante <= 0) {
+    pararCuenta();
+    caja.innerHTML = '<p class="hoy">Hoy nos casamos</p>';
+    return;
+  }
+
+  var seg   = Math.floor(restante / 1000);
+  var dias  = Math.floor(seg / 86400);
+  var horas = Math.floor((seg % 86400) / 3600);
+  var mins  = Math.floor((seg % 3600) / 60);
+  var segs  = seg % 60;
+
+  caja.innerHTML =
+    '<div class="digitos" aria-hidden="true">' +
+      celda(dias,       dias  === 1 ? 'día'  : 'días') +
+      celda(dos(horas), horas === 1 ? 'hora' : 'horas') +
+      celda(dos(mins),  'min') +
+      celda(dos(segs),  'seg') +
+    '</div>' +
+    /* Las cifras van ocultas al lector de pantalla: cambian cada segundo y no
+       aportarían nada leídas. Esta frase, que solo cambia de día en día, sí. */
+    '<p class="solo-voz">' + (dias === 0
+      ? 'Falta menos de un día para la boda.'
+      : 'Faltan ' + dias + (dias === 1 ? ' día' : ' días') + ' para la boda.') + '</p>';
+}
+
+function arrancarCuenta() {
+  pararCuenta();
+  if (!document.getElementById('cuenta')) return;
+  pintarCuenta();
+  if (Date.now() < objetivoMs) { reloj = setInterval(pintarCuenta, 1000); }
+}
+
 function pintar(d) {
   var chips = '';
   for (var i = 0; i < ALERGENOS.length; i++) {
@@ -594,41 +979,67 @@ function pintar(d) {
 
   pantalla(
     '<div id="contenido">' +
-      '<svg class="arco" viewBox="0 0 120 132" aria-hidden="true">' +
-        '<path d="M4 130 L4 64 A56 56 0 0 1 116 64 L116 130"/>' +
-      '</svg>' +
-      '<p class="novios">' + escapar(BODA.novios) + '</p>' +
-      '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
-      '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong><br>' +
-        'a las ' + escapar(BODA.hora) + ' en ' + escapar(BODA.lugar) + '</p>' +
 
-      fotos(FOTOS) +
+      '<section class="seccion" id="inicio">' +
+        '<svg class="arco" viewBox="0 0 120 132" aria-hidden="true">' +
+          '<path d="M4 130 L4 64 A56 56 0 0 1 116 64 L116 130"/>' +
+        '</svg>' +
+        '<p class="novios">' + escapar(BODA.novios) + '</p>' +
+        '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
+        '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong></p>' +
+      '</section>' +
 
-      '<p class="pregunta">¿Nos acompañas?</p>' +
-      '<div class="eleccion">' +
-        '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
-        '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
-      '</div>' +
+      seccionFotos() +
 
-      '<div class="detalle" id="detalle">' +
+      '<section class="seccion" id="el-dia">' +
+        '<h2 class="titulo">El día</h2>' +
+        '<dl class="datos">' +
+          '<div><dt>Fecha</dt><dd>' + escapar(BODA.fecha) + '</dd></div>' +
+          '<div><dt>Hora</dt><dd>' + escapar(BODA.hora) + '</dd></div>' +
+          '<div><dt>Lugar</dt><dd>' + escapar(BODA.lugar) + '</dd></div>' +
+        '</dl>' +
+        (BODA.mapa
+          ? '<p style="margin:0"><a class="mapa" href="' + escapar(BODA.mapa) + '" target="_blank" rel="noopener">Ver cómo llegar</a></p>'
+          : '') +
+      '</section>' +
+
+      seccionCuenta() +
+      seccionEnObras('save-the-date') +
+      seccionEnObras('dedicatoria') +
+
+      '<section class="seccion" id="confirmar">' +
+        '<h2 class="titulo">¿Nos acompañas?</h2>' +
+        '<div class="eleccion">' +
+          '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
+          '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
+        '</div>' +
+
+        '<div class="detalle" id="detalle">' +
+          '<fieldset>' +
+            '<legend>Alergias e intolerancias</legend>' +
+            '<p class="ayuda">Marca lo que necesites. Se lo pasamos tal cual a la cocina.</p>' +
+            '<div class="chips" id="chips">' + chips + '</div>' +
+          '</fieldset>' +
+          '<fieldset>' +
+            '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
+            '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
+          '</fieldset>' +
+        '</div>' +
+
         '<fieldset>' +
-          '<legend>Alergias e intolerancias</legend>' +
-          '<p class="ayuda">Marca lo que necesites. Se lo pasamos tal cual a la cocina.</p>' +
-          '<div class="chips" id="chips">' + chips + '</div>' +
+          '<label class="campo" for="nota">Un mensaje para nosotros</label>' +
+          '<textarea id="nota" placeholder="Opcional"></textarea>' +
         '</fieldset>' +
-        '<fieldset>' +
-          '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
-          '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
-        '</fieldset>' +
-      '</div>' +
 
-      '<fieldset>' +
-        '<label class="campo" for="nota">Un mensaje para nosotros</label>' +
-        '<textarea id="nota" placeholder="Opcional"></textarea>' +
-      '</fieldset>' +
+        '<button type="button" class="enviar" id="enviar" disabled>Enviar confirmación</button>' +
+        '<p class="estado" id="estado"></p>' +
+      '</section>' +
 
-      '<button type="button" class="enviar" id="enviar" disabled>Enviar confirmación</button>' +
-      '<p class="estado" id="estado"></p>' +
+      seccionEnObras('playlist') +
+      seccionEnObras('transporte') +
+      seccionEnObras('alojamiento') +
+      seccionEnObras('sitio-web') +
+
     '</div>'
   );
 
@@ -646,7 +1057,97 @@ function pintar(d) {
     };
   }
 
+  arrancarCuenta();
+  montarIndice();
   restaurar(d);
+}
+
+/* --- índice lateral --- */
+function montarIndice() {
+  var presentes = [];
+  var lista = '';
+
+  for (var i = 0; i < SECCIONES.length; i++) {
+    if (!document.getElementById(SECCIONES[i].id)) continue;
+    presentes.push(SECCIONES[i].id);
+    lista += '<li><a class="nav-enlace" href="#' + escapar(SECCIONES[i].id) + '">'
+           + '<span class="nav-punto" aria-hidden="true"></span>'
+           + '<span>' + escapar(SECCIONES[i].titulo) + '</span></a></li>';
+  }
+
+  // Con una sola sección el índice sobra.
+  if (presentes.length < 2) return;
+
+  document.getElementById('navegacion').innerHTML =
+    '<button type="button" class="nav-boton" id="nav-boton" aria-expanded="false"' +
+      ' aria-controls="nav-indice" aria-label="Índice de la invitación">' +
+      '<span></span><span></span><span></span>' +
+    '</button>' +
+    '<div class="nav-velo" id="nav-velo"></div>' +
+    '<nav class="nav" id="nav-indice" aria-label="Secciones de la invitación">' +
+      '<ol>' + lista + '</ol>' +
+    '</nav>';
+
+  var boton = document.getElementById('nav-boton');
+  var panel = document.getElementById('nav-indice');
+  var velo  = document.getElementById('nav-velo');
+  var enlaces = panel.getElementsByTagName('a');
+
+  function abrir(si) {
+    boton.setAttribute('aria-expanded', si ? 'true' : 'false');
+    panel.className = si ? 'nav abierto' : 'nav';
+    velo.className  = si ? 'nav-velo visible' : 'nav-velo';
+    document.body.style.overflow = si ? 'hidden' : '';
+  }
+
+  boton.onclick = function () { abrir(boton.getAttribute('aria-expanded') !== 'true'); };
+  velo.onclick  = function () { abrir(false); };
+  for (var j = 0; j < enlaces.length; j++) {
+    enlaces[j].onclick = function () { abrir(false); };
+  }
+  document.onkeydown = function (e) {
+    var esc = e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27;
+    if (esc && boton.getAttribute('aria-expanded') === 'true') { abrir(false); }
+  };
+  // Si el móvil abierto pasa a ancho de escritorio (giro de pantalla), el panel
+  // se convierte en raíl y hay que soltar el bloqueo del scroll.
+  window.onresize = function () {
+    if (window.innerWidth >= 992) { abrir(false); }
+    repasar();
+  };
+
+  function marcar(id) {
+    for (var k = 0; k < enlaces.length; k++) {
+      if (enlaces[k].getAttribute('href') === '#' + id) {
+        enlaces[k].setAttribute('aria-current', 'true');
+      } else {
+        enlaces[k].removeAttribute('aria-current');
+      }
+    }
+  }
+
+  /* Manda la última sección cuyo borde superior haya pasado la franja de
+     referencia. Con tres secciones sale más barato medirlas en cada scroll
+     que sostener un IntersectionObserver y su estado. */
+  function repasar() {
+    // La portada es corta: arriba del todo la franja ya cae en la sección
+    // siguiente, así que ahí mandamos la primera sin mirar nada más.
+    if ((window.pageYOffset || document.documentElement.scrollTop) < 8) {
+      marcar(presentes[0]);
+      return;
+    }
+    var franja = window.innerHeight * 0.42;
+    var mejor = presentes[0];
+    for (var n = 0; n < presentes.length; n++) {
+      if (document.getElementById(presentes[n]).getBoundingClientRect().top <= franja) {
+        mejor = presentes[n];
+      }
+    }
+    marcar(mejor);
+  }
+
+  window.onscroll = repasar;
+  repasar();
 }
 
 /* Si ya había respondido antes, dejamos su respuesta puesta. */
