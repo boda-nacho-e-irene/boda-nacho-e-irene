@@ -52,6 +52,8 @@
      para que al saltar a una sección el título no quede debajo. */
   .seccion { scroll-margin-top: 4.5rem; }
   .seccion + .seccion { margin-top: 3.75rem; }
+  /* Las secciones de después de «Confirmar» se esconden si alguien no viene. */
+  .seccion[hidden] { display: none; }
 
   .titulo {
     font-family: "Cormorant Garamond", Georgia, serif;
@@ -286,7 +288,26 @@
 
   /* ---------- formulario ---------- */
 
-  .eleccion { display: grid; gap: .625rem; margin-bottom: 2rem; }
+  .eleccion { display: grid; gap: .625rem; margin-bottom: .75rem; }
+
+  /* Sale al elegir y se queda plegado mientras no haya respuesta. Plegado,
+     sus dos márgenes suman los 2rem que había bajo los botones, así que la
+     sección no da un salto la primera vez que alguien contesta. */
+  .respuesta {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height .35s ease, opacity .3s ease;
+    text-align: center;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-style: italic;
+    font-size: 1.125rem;
+    line-height: 1.4;
+    color: var(--ocre);
+    margin: 0 0 1.25rem;
+    text-wrap: pretty;
+  }
+  .respuesta.visible { max-height: 6rem; opacity: 1; }
 
   button {
     font: inherit;
@@ -608,7 +629,7 @@
     html { scroll-behavior: auto; }
     * { animation: none !important; transition: none !important; }
     .arco path { stroke-dashoffset: 0; }
-    .detalle { transition: none; }
+    .detalle, .respuesta { transition: none; }
   }
 </style>
 </head>
@@ -669,10 +690,10 @@ var SECCIONES = [
   { id: 'inicio',        titulo: 'Inicio' },
   { id: 'fotos',         titulo: 'Fotos' },
   { id: 'el-dia',        titulo: 'El día' },
+  { id: 'confirmar',     titulo: 'Confirmar' },
   { id: 'cuenta-atras',  titulo: 'Cuenta atrás' },
   { id: 'save-the-date', titulo: 'Save the date' },
   { id: 'dedicatoria',   titulo: 'Dedicatoria' },
-  { id: 'confirmar',     titulo: 'Confirmar' },
   { id: 'playlist',      titulo: 'Playlist' },
   { id: 'transporte',    titulo: 'Transporte' },
   { id: 'alojamiento',   titulo: 'Alojamiento' },
@@ -702,6 +723,12 @@ var EN_OBRAS = [
   { id: 'sitio-web', titulo: 'Sitio web',
     texto: 'Habrá una página con todos los detalles de la boda. Sigue en obras.' }
 ];
+
+/* El subtítulo que aparece bajo los botones nada más elegir. */
+var RESPUESTAS = {
+  si: '¡Nos alegramos mucho de oírlo!',
+  no: 'No te preocupes, lo entendemos perfectamente'
+};
 
 var ALERGENOS = [
   'Gluten', 'Lactosa', 'Frutos secos', 'Marisco',
@@ -970,6 +997,34 @@ function arrancarCuenta() {
   if (Date.now() < objetivoMs) { reloj = setInterval(pintarCuenta, 1000); }
 }
 
+/* Los `id` de SECCIONES que van detrás de «Confirmar»: son los que se caen de
+   la página cuando alguien nos dice que no puede venir. Salen de la lista y no
+   a mano, así que reordenar SECCIONES los recoloca solos. */
+function seccionesTrasConfirmar() {
+  var fuera = [];
+  var visto = false;
+  for (var i = 0; i < SECCIONES.length; i++) {
+    if (visto) { fuera.push(SECCIONES[i].id); }
+    if (SECCIONES[i].id === 'confirmar') { visto = true; }
+  }
+  return fuera;
+}
+
+/* A quien no puede venir le sobra todo lo que viene después de confirmar
+   (empezando por una cuenta atrás que no va con él): se lo quitamos de la
+   página y del índice. Le queda el mensaje para nosotros, que es lo que sí
+   tiene sentido que nos deje. Si cambia de idea, vuelve todo. */
+function ajustarAlcance(asiste) {
+  var fuera = seccionesTrasConfirmar();
+  for (var i = 0; i < fuera.length; i++) {
+    var sec = document.getElementById(fuera[i]);
+    if (sec) { sec.hidden = !asiste; }
+  }
+  // El reloj de la cuenta atrás no tiene por qué seguir latiendo si no se ve.
+  if (asiste) { arrancarCuenta(); } else { pararCuenta(); }
+  montarIndice();
+}
+
 function pintar(d) {
   var chips = '';
   for (var i = 0; i < ALERGENOS.length; i++) {
@@ -1003,16 +1058,14 @@ function pintar(d) {
           : '') +
       '</section>' +
 
-      seccionCuenta() +
-      seccionEnObras('save-the-date') +
-      seccionEnObras('dedicatoria') +
-
       '<section class="seccion" id="confirmar">' +
         '<h2 class="titulo">¿Nos acompañas?</h2>' +
         '<div class="eleccion">' +
           '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
           '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
         '</div>' +
+
+        '<p class="respuesta" id="respuesta" aria-live="polite"></p>' +
 
         '<div class="detalle" id="detalle">' +
           '<fieldset>' +
@@ -1035,6 +1088,9 @@ function pintar(d) {
         '<p class="estado" id="estado"></p>' +
       '</section>' +
 
+      seccionCuenta() +
+      seccionEnObras('save-the-date') +
+      seccionEnObras('dedicatoria') +
       seccionEnObras('playlist') +
       seccionEnObras('transporte') +
       seccionEnObras('alojamiento') +
@@ -1063,20 +1119,33 @@ function pintar(d) {
 }
 
 /* --- índice lateral --- */
+/* Se llama al pintar y cada vez que cambia el juego de secciones a la vista,
+   así que empieza soltando lo que dejó la vez anterior. */
 function montarIndice() {
   var presentes = [];
   var lista = '';
 
+  document.body.style.overflow = '';
+  window.onscroll = null;
+  window.onresize = null;
+  document.onkeydown = null;
+
   for (var i = 0; i < SECCIONES.length; i++) {
-    if (!document.getElementById(SECCIONES[i].id)) continue;
+    var seccion = document.getElementById(SECCIONES[i].id);
+    if (!seccion || seccion.hidden) continue;
     presentes.push(SECCIONES[i].id);
     lista += '<li><a class="nav-enlace" href="#' + escapar(SECCIONES[i].id) + '">'
            + '<span class="nav-punto" aria-hidden="true"></span>'
            + '<span>' + escapar(SECCIONES[i].titulo) + '</span></a></li>';
   }
 
-  // Con una sola sección el índice sobra.
-  if (presentes.length < 2) return;
+  /* Con una sola sección el índice sobra. Lo vaciamos en vez de dejarlo estar:
+     esto también se llama al ocultar secciones, y el de antes se quedaría con
+     enlaces a lo que ya no hay. */
+  if (presentes.length < 2) {
+    document.getElementById('navegacion').innerHTML = '';
+    return;
+  }
 
   document.getElementById('navegacion').innerHTML =
     '<button type="button" class="nav-boton" id="nav-boton" aria-expanded="false"' +
@@ -1179,9 +1248,15 @@ function elegir(asiste) {
   document.getElementById('si').setAttribute('aria-pressed', asiste ? 'true' : 'false');
   document.getElementById('no').setAttribute('aria-pressed', asiste ? 'false' : 'true');
 
+  var respuesta = document.getElementById('respuesta');
+  respuesta.textContent = asiste ? RESPUESTAS.si : RESPUESTAS.no;
+  respuesta.className = 'respuesta visible';
+
   var detalle = document.getElementById('detalle');
   if (asiste) { detalle.className = 'detalle abierto'; }
   else { detalle.className = 'detalle'; }
+
+  ajustarAlcance(asiste);
 
   document.getElementById('enviar').disabled = false;
 }
