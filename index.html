@@ -1341,8 +1341,10 @@ function arrancarCuenta() {
 
 /* --- sugerencias de música --- */
 
-/* La sección la ve cualquiera con enlace, haya confirmado o no: quien no pueda
-   venir también tiene derecho a dejar su canción. */
+/* Va detrás de «Confirmar», así que `ajustarAlcance()` se la lleva por delante
+   en cuanto alguien dice que no puede venir, como al resto de las de después.
+   Las canciones que hubiese mandado antes siguen en la hoja: solo desaparece
+   la sección. */
 function seccionPlaylist() {
   return '<section class="seccion" id="playlist">' +
            '<h2 class="titulo">Pon tú la música</h2>' +

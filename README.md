@@ -173,7 +173,9 @@ Corta sobre las 20 búsquedas por minuto y por IP, así que el buscador espera
 400 ms desde la última tecla antes de preguntar. Si una canción no aparece,
 la página ofrece mandarla tal cual se escribió, sin `itunes_id`.
 
-Todo el que tenga enlace ve la sección, haya confirmado o no.
+La sección va detrás de *Confirmar*, así que cae con las demás cuando alguien
+pulsa *No podré ir* (ver *Quien no puede venir*). Lo que ya hubiese mandado se
+queda en la hoja; solo desaparece la sección, y vuelve si cambia de idea.
 
 ## Notas
 
