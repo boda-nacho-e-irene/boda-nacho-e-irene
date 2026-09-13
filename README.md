@@ -30,6 +30,10 @@ implementación** (o subir versión en la existente); guardar el `.gs` no basta.
 
 ## Notas
 
+- Al abrir, un sobre cerrado tapa la página hasta que el invitado toca. Lleva su
+  nombre escrito en cuanto responde el backend. La invitación se pinta detrás
+  mientras tanto; su animación de entrada espera a que el sobre se aparte.
+  Con `prefers-reduced-motion` el sobre desaparece al primer toque, sin animación.
 - El token va en el parámetro `i` y es la única credencial. Nada sensible en esta página.
 - `robots.txt` y el `<meta robots>` evitan que los enlaces acaben indexados.
 - El POST se manda con `Content-Type: text/plain` a propósito: `application/json`
