@@ -346,7 +346,7 @@
 
   label.campo { display: block; font-size: .9375rem; font-weight: 600; margin-bottom: .375rem; }
 
-  input[type="text"], textarea {
+  input[type="text"], input[type="search"], textarea {
     font: inherit;
     width: 100%;
     background: rgba(255,255,255,.45);
@@ -378,6 +378,69 @@
   .estado.mal { color: var(--error); }
 
   .centrado { text-align: center; padding: 4rem 0; color: var(--musgo); }
+
+  /* ---------- sugerencias de música ---------- */
+
+  .resultados { margin: 0 0 1.75rem; }
+
+  .resultado {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: .75rem;
+    padding: .625rem 0;
+    border-top: 1px solid var(--hueco);
+  }
+  .resultado:first-child { border-top: 0; }
+
+  .caratula {
+    display: block;
+    width: 48px;
+    height: 48px;
+    border-radius: 2px;
+    background: var(--hueco);
+  }
+
+  /* Hay títulos y artistas larguísimos y la columna mide lo que mide: se
+     recortan en una línea en vez de romper la fila. El min-width deja que la
+     columna 1fr encoja; sin él la rejilla se pasa de ancho. */
+  .pista { min-width: 0; }
+  .pista b, .pista span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pista b { font-size: .9375rem; font-weight: 600; }
+  .pista span { font-size: .8125rem; color: var(--musgo); }
+
+  .anadir, .quitar {
+    background: transparent;
+    border: 1px solid var(--hueco);
+    padding: .45rem .8rem;
+    font-size: .875rem;
+    white-space: nowrap;
+    transition: border-color .18s, background-color .18s, color .18s;
+  }
+  .anadir:hover { border-color: var(--ocre); background: rgba(156,107,36,.1); }
+  .quitar { color: var(--musgo); }
+  .quitar:hover { border-color: var(--error); color: var(--error); }
+
+  .subtitulo { font-size: .9375rem; font-weight: 600; margin: 0 0 .5rem; }
+
+  .mis-canciones { list-style: none; margin: 0; padding: 0; }
+  .mis-canciones li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: .75rem;
+    padding: .625rem 0;
+    border-top: 1px solid var(--hueco);
+  }
+  .mis-canciones li:first-child { border-top: 0; }
+  .mis-canciones li.vacio { display: block; }
+
+  .vacio { color: var(--musgo); font-size: .9375rem; margin: 0; }
 
   /* ---------- cuenta atrás ---------- */
 
@@ -690,9 +753,6 @@ var EN_OBRAS = [
   { id: 'dedicatoria', titulo: 'Dedicatoria',
     texto: 'Aquí irán unas palabras nuestras. Todavía las estamos escribiendo.' },
 
-  { id: 'playlist', titulo: 'Sugerencias de playlist',
-    texto: 'Queremos que suene lo que te haga levantarte de la silla. Pronto podrás proponer canciones.' },
-
   { id: 'transporte', titulo: 'Transporte',
     texto: 'Estamos cerrando horarios y puntos de recogida. En cuanto los tengamos, los contamos aquí.' },
 
@@ -707,6 +767,13 @@ var ALERGENOS = [
   'Gluten', 'Lactosa', 'Frutos secos', 'Marisco',
   'Pescado', 'Huevo', 'Soja', 'Vegetariano', 'Vegano'
 ];
+
+/* Canciones que puede proponer cada invitado. Tiene que ser el mismo número
+   que MAX_CANCIONES en Code.gs, que es quien manda: al añadir una de más, el
+   backend sustituye a la más antigua en vez de rechazarla.
+   ITUNES_PAIS es el catálogo de iTunes en el que se busca. */
+var MAX_CANCIONES = 3;
+var ITUNES_PAIS = 'ES';
 
 /* Fotos de la sección «Fotos». Van en la carpeta img/ del repo, con la ruta
    relativa: en un repo de proyecto la página cuelga de /REPO/, así que
@@ -735,6 +802,11 @@ var token = (function () {
 
 var elegido = null;          // true | false | null
 var marcados = {};           // alérgenos seleccionados
+
+var canciones = [];          // las que ya ha mandado este invitado
+var hallazgos = [];          // lo último que devolvió iTunes
+var buscador = null;         // temporizador del debounce del buscador
+var buscadaN = 0;            // descarta lo que llegue de búsquedas ya pasadas
 
 /* --- el sobre: tapa la página hasta que el invitado la toca --- */
 
@@ -804,6 +876,34 @@ function pedir(metodo, url, cuerpo, alTerminar) {
   x.onerror = function () { alTerminar(null); };
   x.ontimeout = function () { alTerminar(null); };
   x.send(cuerpo || null);
+}
+
+/* iTunes no promete cabeceras CORS, así que se le pide por JSONP: un <script>
+   con el nombre de una función global nuestra en el parámetro 'callback', que
+   es la vía que documenta Apple. `url` tiene que traer ya su '?'. */
+var jsonpN = 0;
+function jsonp(url, alTerminar) {
+  var nombre = '__itunes' + (++jsonpN);
+  var etiqueta = document.createElement('script');
+  var reloj = null;
+
+  /* Quitar la etiqueta no siempre cancela un script que ya venía de camino: si
+     luego no encontrase su función, el fallo subiría a window.onerror, que
+     borra la invitación entera. Por eso queda un cascarón vacío salvo cuando
+     sabemos que ese script ya no va a ejecutarse. */
+  function recoger(borrar) {
+    if (reloj) { clearTimeout(reloj); reloj = null; }
+    window[nombre] = function () {};
+    if (borrar) { try { delete window[nombre]; } catch (e) {} }
+    if (etiqueta.parentNode) { etiqueta.parentNode.removeChild(etiqueta); }
+  }
+
+  window[nombre] = function (d) { recoger(true); alTerminar(d); };
+  etiqueta.onerror = function () { recoger(true); alTerminar(null); };
+  reloj = setTimeout(function () { recoger(false); alTerminar(null); }, 10000);
+
+  etiqueta.src = url + '&callback=' + nombre;
+  document.head.appendChild(etiqueta);
 }
 
 function escapar(s) {
@@ -970,6 +1070,189 @@ function arrancarCuenta() {
   if (Date.now() < objetivoMs) { reloj = setInterval(pintarCuenta, 1000); }
 }
 
+/* --- sugerencias de música --- */
+
+/* La sección la ve cualquiera con enlace, haya confirmado o no: quien no pueda
+   venir también tiene derecho a dejar su canción. */
+function seccionPlaylist() {
+  return '<section class="seccion" id="playlist">' +
+           '<h2 class="titulo">Pon tú la música</h2>' +
+           '<p class="ayuda">Busca hasta ' + MAX_CANCIONES + ' canciones y te las apuntamos. ' +
+             'Si añades una más, sustituye a la más antigua.</p>' +
+           '<fieldset>' +
+             '<label class="campo" for="buscar">Busca una canción</label>' +
+             '<input type="search" id="buscar" placeholder="Título o artista" autocomplete="off">' +
+           '</fieldset>' +
+           '<div class="resultados" id="resultados" aria-live="polite"></div>' +
+           '<h3 class="subtitulo">Tus canciones</h3>' +
+           '<ul class="mis-canciones" id="mis-canciones"></ul>' +
+           '<p class="estado" id="estado-musica" role="status" aria-live="polite"></p>' +
+         '</section>';
+}
+
+function estadoMusica(texto, mal) {
+  var e = document.getElementById('estado-musica');
+  if (!e) return;
+  e.className = mal ? 'estado mal' : 'estado';
+  e.textContent = texto;
+}
+
+/* Las que ya ha mandado, cada una con su botón de quitar. */
+function pintarMisCanciones() {
+  var caja = document.getElementById('mis-canciones');
+  if (!caja) return;
+
+  if (!canciones.length) {
+    caja.innerHTML = '<li class="vacio">Todavía no has propuesto ninguna.</li>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < canciones.length; i++) {
+    var c = canciones[i];
+    html += '<li>' +
+              '<span class="pista"><b>' + escapar(c.cancion) + '</b>' +
+                '<span>' + escapar(c.artista || 'Sin artista') + '</span></span>' +
+              '<button type="button" class="quitar" data-id="' + escapar(c.id) + '">Quitar</button>' +
+            '</li>';
+  }
+  caja.innerHTML = html;
+}
+
+/* Los objetos de iTunes se guardan en `hallazgos` y las filas los señalan por
+   posición: así no hay que meter JSON dentro de un atributo. */
+function pintarHallazgos(lista) {
+  var caja = document.getElementById('resultados');
+  if (!caja) return;
+
+  hallazgos = lista || [];
+  var html = '';
+
+  for (var i = 0; i < hallazgos.length; i++) {
+    var r = hallazgos[i];
+    var album = r.collectionName ? ' · ' + r.collectionName : '';
+    html += '<div class="resultado">' +
+              (r.artworkUrl100
+                ? '<img class="caratula" src="' + escapar(r.artworkUrl100) + '" ' +
+                    'width="48" height="48" alt="" loading="lazy" decoding="async">'
+                : '<span class="caratula"></span>') +
+              '<span class="pista"><b>' + escapar(r.trackName) + '</b>' +
+                '<span>' + escapar(r.artistName + album) + '</span></span>' +
+              '<button type="button" class="anadir" data-i="' + i + '">Añadir</button>' +
+            '</div>';
+  }
+  caja.innerHTML = html;
+}
+
+function limpiarHallazgos() {
+  buscadaN++;                                   // lo que venga de camino ya no vale
+  hallazgos = [];
+  var caja = document.getElementById('resultados');
+  if (caja) { caja.innerHTML = ''; }
+}
+
+function buscarEnItunes(texto) {
+  var mia = ++buscadaN;
+  var url = 'https://itunes.apple.com/search?media=music&entity=song&limit=6' +
+            '&country=' + encodeURIComponent(ITUNES_PAIS) +
+            '&term=' + encodeURIComponent(texto);
+
+  jsonp(url, function (d) {
+    if (mia !== buscadaN) return;               // llegó tarde: ya hay otra búsqueda
+    var caja = document.getElementById('resultados');
+    if (!caja) return;
+
+    if (!d) {
+      hallazgos = [];
+      caja.innerHTML = '';
+      estadoMusica('No hemos podido buscar. Prueba otra vez en un momento.', true);
+      return;
+    }
+
+    var lista = d.results || [];
+    if (!lista.length) {
+      // No está en iTunes (o se escribe de otra manera): que la mande a mano.
+      hallazgos = [];
+      caja.innerHTML = '<p class="vacio">No encontramos nada con eso. ' +
+        '<button type="button" class="anadir" data-manual="1">Añadirla tal cual</button></p>';
+      return;
+    }
+
+    pintarHallazgos(lista);
+  });
+}
+
+/* iTunes corta sobre las 20 búsquedas por minuto y por IP, así que se espera a
+   que el invitado deje de teclear. */
+function programarBusqueda(texto) {
+  if (buscador) { clearTimeout(buscador); buscador = null; }
+  var limpio = texto.replace(/^\s+|\s+$/g, '');
+
+  if (limpio.length < 2) { limpiarHallazgos(); return; }
+  buscador = setTimeout(function () { buscarEnItunes(limpio); }, 400);
+}
+
+function buscarYa() {
+  if (buscador) { clearTimeout(buscador); buscador = null; }
+  var texto = document.getElementById('buscar').value.replace(/^\s+|\s+$/g, '');
+  if (texto.length >= 2) { buscarEnItunes(texto); }
+}
+
+/* El backend devuelve siempre la lista entera ya resuelta, así que aquí no hay
+   que saber nada de límites ni de sustituciones: se repinta lo que llega. */
+function anadirCancion(c) {
+  estadoMusica('Guardando…');
+
+  pedir('POST', API, JSON.stringify({
+    token: token,
+    accion: 'cancion',
+    cancion: c.cancion,
+    artista: c.artista,
+    album: c.album,
+    itunes_id: c.itunes_id,
+    enlace: c.enlace
+  }), function (d) {
+    if (!d || !d.ok) {
+      estadoMusica('No se ha podido guardar. Inténtalo otra vez.', true);
+      return;
+    }
+    canciones = d.canciones || [];
+    pintarMisCanciones();
+
+    if (d.repetida) {
+      estadoMusica('Esa ya la tenías apuntada.');
+    } else if (d.quitada) {
+      estadoMusica('Apuntada. Hemos quitado «' + d.quitada.cancion + '» para hacerle sitio.');
+    } else {
+      estadoMusica('Apuntada.');
+    }
+  });
+}
+
+function quitarCancion(id) {
+  estadoMusica('Quitando…');
+
+  pedir('POST', API, JSON.stringify({
+    token: token, accion: 'quitar_cancion', id: id
+  }), function (d) {
+    if (!d || !d.ok) {
+      estadoMusica('No se ha podido quitar. Inténtalo otra vez.', true);
+      return;
+    }
+    canciones = d.canciones || [];
+    pintarMisCanciones();
+    estadoMusica('Quitada.');
+  });
+}
+
+/* Sube desde donde se hizo clic hasta el botón: el clic puede caer en la
+   carátula o en el texto de dentro. */
+function botonDe(destino, tope) {
+  var b = destino;
+  while (b && b !== tope && b.tagName !== 'BUTTON') { b = b.parentNode; }
+  return b && b !== tope ? b : null;
+}
+
 function pintar(d) {
   var chips = '';
   for (var i = 0; i < ALERGENOS.length; i++) {
@@ -1035,7 +1318,7 @@ function pintar(d) {
         '<p class="estado" id="estado"></p>' +
       '</section>' +
 
-      seccionEnObras('playlist') +
+      seccionPlaylist() +
       seccionEnObras('transporte') +
       seccionEnObras('alojamiento') +
       seccionEnObras('sitio-web') +
@@ -1056,6 +1339,45 @@ function pintar(d) {
       if (activo) { delete marcados[nombre]; } else { marcados[nombre] = true; }
     };
   }
+
+  var buscar = document.getElementById('buscar');
+  buscar.oninput = function () { programarBusqueda(this.value); };
+  // Sin formulario que enviar, el Enter no hace nada por sí solo: que busque.
+  buscar.onkeydown = function (e) {
+    if (e.key === 'Enter' || e.keyCode === 13) { buscarYa(); }
+  };
+
+  /* Delegación en los dos contenedores: sus filas se repintan enteras cada vez
+     y así no hay que volver a colgar un onclick por botón, como sí pasa con
+     los chips, que se pintan una sola vez. */
+  document.getElementById('resultados').onclick = function (e) {
+    var b = botonDe(e.target, this);
+    if (!b) return;
+
+    if (b.getAttribute('data-manual')) {
+      var texto = document.getElementById('buscar').value.replace(/^\s+|\s+$/g, '');
+      if (texto) {
+        anadirCancion({ cancion: texto, artista: '', album: '', itunes_id: '', enlace: '' });
+      }
+      return;
+    }
+
+    var r = hallazgos[Number(b.getAttribute('data-i'))];
+    if (!r) return;
+    anadirCancion({
+      cancion:   r.trackName || '',
+      artista:   r.artistName || '',
+      album:     r.collectionName || '',
+      itunes_id: r.trackId ? String(r.trackId) : '',
+      enlace:    r.trackViewUrl || ''
+    });
+  };
+
+  document.getElementById('mis-canciones').onclick = function (e) {
+    var b = botonDe(e.target, this);
+    var id = b && b.getAttribute('data-id');
+    if (id) { quitarCancion(id); }
+  };
 
   arrancarCuenta();
   montarIndice();
@@ -1150,8 +1472,12 @@ function montarIndice() {
   repasar();
 }
 
-/* Si ya había respondido antes, dejamos su respuesta puesta. */
+/* Si ya había respondido antes, dejamos su respuesta puesta. Las canciones
+   vienen en el mismo GET, así que se reponen aquí igual que los alérgenos. */
 function restaurar(d) {
+  canciones = d.canciones || [];
+  pintarMisCanciones();
+
   if (d.alergenos) {
     var previos = String(d.alergenos).split(',');
     var botones = document.getElementById('chips').getElementsByTagName('button');

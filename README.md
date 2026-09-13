@@ -6,7 +6,8 @@ confirmación en una hoja de Google.
 - Front: este repo, servido por GitHub Pages.
 - Backend: proyecto de Google Apps Script publicado como aplicación web.
 - Datos: hoja de cálculo de Google, pestaña `Invitados`
-  (`token`, `nombre`, `asiste`, `fecha_respuesta`).
+  (`token`, `nombre`, `asiste`, `fecha_respuesta`) y pestaña `Canciones`
+  con las sugerencias de música.
 
 ## Despliegue
 
@@ -90,6 +91,37 @@ magick mogrify -path img -resize 1200x1200\> -quality 75 -strip -format webp ori
 
 El `<meta robots>` mantiene la página fuera de los buscadores, pero
 cualquiera con la URL puede descargar las fotos directamente.
+
+## Playlist
+
+Cada invitado puede proponer canciones desde la sección *Pon tú la música*.
+Buscan en el catálogo de iTunes y lo que eligen cae en la pestaña `Canciones`
+de la misma hoja, con una fila por canción:
+
+```
+id  fecha  token  nombre  cancion  artista  album  itunes_id  enlace
+```
+
+`nombre` se copia de la pestaña de invitados al escribir, así que la lista dice
+quién pidió cada cosa sin tener que cruzar tokens. `enlace` es la ficha de la
+canción en Apple Music, útil para encontrarla luego en otro servicio.
+
+La pestaña se crea sola con la primera sugerencia. Para verla montada antes,
+ejecuta `crearHojaCanciones()` a mano desde el editor de Apps Script, igual que
+`generarTokens()`.
+
+El tope son **tres canciones por invitado**, en `MAX_CANCIONES`. Al añadir una
+cuarta no se rechaza: sustituye a la más antigua, escribiendo encima de su fila
+para no mover el resto. La constante está en los dos archivos (`Code.gs` e
+`index.html`) y manda la del backend; si cambias una, cambia la otra.
+
+La búsqueda va por **JSONP** (`<script>` con `&callback=`), no por `fetch`:
+iTunes no promete cabeceras CORS y ese parámetro es la vía que documenta Apple.
+Corta sobre las 20 búsquedas por minuto y por IP, así que el buscador espera
+400 ms desde la última tecla antes de preguntar. Si una canción no aparece,
+la página ofrece mandarla tal cual se escribió, sin `itunes_id`.
+
+Todo el que tenga enlace ve la sección, haya confirmado o no.
 
 ## Notas
 
