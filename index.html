@@ -50,7 +50,7 @@
 
   /* El botón del índice ocupa la esquina superior en móvil: dejamos hueco
      para que al saltar a una sección el título no quede debajo. */
-  .seccion { scroll-margin-top: 4.5rem; }
+  .seccion, .trayecto { scroll-margin-top: 4.5rem; }
   .seccion + .seccion { margin-top: 3.75rem; }
 
   .titulo {
@@ -258,7 +258,7 @@
       visibility: visible;
       transform: translateY(-50%);
     }
-    .seccion { scroll-margin-top: 2.5rem; }
+    .seccion, .trayecto { scroll-margin-top: 2.5rem; }
   }
 
   /* ---------- secciones en obras ---------- */
@@ -282,6 +282,111 @@
     color: var(--musgo);
     margin: 0;
     text-wrap: pretty;
+  }
+
+  /* ---------- transporte ---------- */
+
+  /* Base = pantalla estrecha: uno debajo del otro. */
+  .trayectos { display: grid; gap: 2rem; }
+
+  /* En cuanto caben, van en paralelo —ida a un lado, vuelta al otro— separados
+     por la misma línea fina que las juntas del resto de la página. El grid se
+     estira, así que la línea llega abajo aunque un trayecto tenga más paradas
+     que el otro. `column` vale para dos o para los que haya. */
+  @media (min-width: 23rem) {
+    .trayectos {
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      gap: 0;
+    }
+    .trayecto { padding-right: 1.125rem; }
+    .trayecto + .trayecto {
+      padding-right: 0;
+      padding-left: 1.125rem;
+      border-left: 1px solid var(--hueco);
+    }
+  }
+
+  .sub-titulo {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.25rem;
+    font-style: italic;
+    font-weight: 400;
+    text-align: center;
+    margin: 0 0 .75rem;
+  }
+
+  /* La hora (o las dos horas) a las que sale ese autobús. */
+  .salidas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .45rem;
+    margin: 0 0 1.375rem;
+  }
+
+  /* Con dos horas y la columna muy justa, la segunda baja de línea en vez de
+     desbordar. */
+  .horas { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; }
+
+  .salidas-rotulo {
+    font-size: .6875rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--musgo);
+  }
+
+  .hora {
+    padding: .15rem .55rem;
+    border: 1px solid var(--ocre);
+    border-radius: 2px;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.125rem;
+    line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Las paradas en orden, colgadas de una línea vertical. Punto lleno en el
+     origen y en el destino, hueco en las paradas de en medio. */
+  .ruta { list-style: none; margin: 0; padding: 0; }
+
+  .ruta li { position: relative; padding: 0 0 1.125rem 1.5rem; }
+  .ruta li:last-child { padding-bottom: 0; }
+
+  /* La línea baja desde debajo de un punto hasta justo encima del siguiente. */
+  .ruta li::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 1rem;
+    bottom: -.375rem;
+    border-left: 1px solid var(--hueco);
+  }
+  .ruta li:last-child::before { display: none; }
+
+  .ruta li::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: .4rem;
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--musgo);
+    border-radius: 50%;
+    background: var(--piedra);
+  }
+  .ruta li:first-child::after,
+  .ruta li:last-child::after {
+    background: var(--ocre);
+    border-color: var(--ocre);
+  }
+
+  .ruta-lugar { display: block; }
+
+  .ruta-detalle {
+    display: block;
+    font-size: .875rem;
+    color: var(--musgo);
   }
 
   /* ---------- formulario ---------- */
@@ -661,6 +766,44 @@ var BODA = {
   iso:    '2027-07-17T12:30:00+02:00'
 };
 
+/* El autobús: los dos trayectos, con sus horas de salida y sus paradas en
+   orden. El `id` de cada trayecto sirve para enlazarlo directo
+   (…/?i=TOKEN#transporte-ida); el índice lateral entra por la sección entera.
+
+   `salidas` admite varias horas (la vuelta hace el mismo camino dos veces) y
+   cada parada lleva un `detalle` opcional con el punto exacto de recogida.
+   Si `trayectos` se queda vacío, la sección no se pinta y el índice descarta
+   sus entradas él solo, igual que con las fotos.
+
+   `elegible: true` marca el trayecto cuyas salidas elige el invitado: esas
+   horas salen como botones dentro de *Confirmar* y la elegida viaja a la hoja
+   en el mismo envío que la confirmación. Solo tiene sentido en uno, y solo si
+   tiene más de una hora. */
+var TRANSPORTE = {
+  /* Una línea debajo de los dos trayectos, por si hay que decir algo (reservar
+     plaza, a quién avisar...). Vacía: no se pinta. */
+  nota: 'Al confirmar tu asistencia nos dices en cuál de los dos autobuses de vuelta te guardamos sitio.',
+
+  trayectos: [
+    { id: 'transporte-ida', titulo: 'Ida',
+      salidas: ['10:00'],
+      paradas: [
+        { lugar: 'Venta de Baños', detalle: 'Ayuntamiento' },
+        { lugar: 'Palencia',       detalle: 'San Lázaro' },
+        { lugar: 'Convento de Mave' }
+      ] },
+
+    { id: 'transporte-vuelta', titulo: 'Vuelta',
+      salidas: ['21:30', '23:30'],
+      elegible: true,
+      paradas: [
+        { lugar: 'Convento de Mave' },
+        { lugar: 'Palencia',       detalle: 'San Lázaro' },
+        { lugar: 'Venta de Baños', detalle: 'Ayuntamiento' }
+      ] }
+  ]
+};
+
 /* Índice lateral: el orden manda, y es también el orden en que se pintan las
    secciones. Cada `id` tiene que existir en la página o la entrada se descarta
    sola. Para añadir una sección, crea el <section class="seccion" id="...">
@@ -692,9 +835,6 @@ var EN_OBRAS = [
 
   { id: 'playlist', titulo: 'Sugerencias de playlist',
     texto: 'Queremos que suene lo que te haga levantarte de la silla. Pronto podrás proponer canciones.' },
-
-  { id: 'transporte', titulo: 'Transporte',
-    texto: 'Estamos cerrando horarios y puntos de recogida. En cuanto los tengamos, los contamos aquí.' },
 
   { id: 'alojamiento', titulo: 'Alojamiento',
     texto: 'Estamos apalabrando habitaciones cerca del convento. Aquí verás los sitios y los precios.' },
@@ -735,6 +875,7 @@ var token = (function () {
 
 var elegido = null;          // true | false | null
 var marcados = {};           // alérgenos seleccionados
+var vuelta = null;           // hora del autobús de vuelta, SIN_VUELTA, o null
 
 /* --- el sobre: tapa la página hasta que el invitado la toca --- */
 
@@ -909,6 +1050,107 @@ function seccionCuenta() {
          '</section>';
 }
 
+/* --- transporte --- */
+
+/* La hora, o las horas, a las que sale ese autobús. */
+function horasSalida(salidas) {
+  if (!salidas || !salidas.length) return '';
+  var html = '';
+  for (var i = 0; i < salidas.length; i++) {
+    html += '<span class="hora">' + escapar(salidas[i]) + '</span>';
+  }
+  return '<p class="salidas">' +
+           '<span class="salidas-rotulo">' +
+             (salidas.length === 1 ? 'Salida' : 'Salidas') +
+           '</span>' +
+           '<span class="horas">' + html + '</span>' +
+         '</p>';
+}
+
+/* Las paradas van en una lista ordenada: el orden es el del recorrido, y así
+   también se lee en voz alta como «uno de tres». */
+function ruta(paradas) {
+  var html = '';
+  for (var i = 0; i < paradas.length; i++) {
+    html += '<li><span class="ruta-lugar">' + escapar(paradas[i].lugar) + '</span>' +
+            (paradas[i].detalle
+              ? '<span class="ruta-detalle">' + escapar(paradas[i].detalle) + '</span>'
+              : '') +
+            '</li>';
+  }
+  return '<ol class="ruta">' + html + '</ol>';
+}
+
+/* Lo que se guarda cuando el invitado no coge el autobús de vuelta: así la
+   celda de la hoja distingue «no lo necesita» de «todavía no ha contestado». */
+var SIN_VUELTA = 'No';
+
+/* Las horas entre las que elige el invitado: las del trayecto marcado como
+   `elegible`. Vacío si no hay ninguno, o si solo tiene una hora (entonces no
+   hay nada que elegir y no pintamos los botones). */
+function salidasElegibles() {
+  var ts = TRANSPORTE.trayectos || [];
+  for (var i = 0; i < ts.length; i++) {
+    if (ts[i].elegible && ts[i].salidas && ts[i].salidas.length > 1) return ts[i].salidas;
+  }
+  return [];
+}
+
+/* Van dentro de *Confirmar*, no en *Transporte*: la sección de transporte
+   queda por debajo del botón de enviar, y de allí no se envía nada. */
+function camposVuelta() {
+  var horas = salidasElegibles();
+  if (!horas.length) return '';
+
+  var botones = '';
+  for (var i = 0; i < horas.length; i++) {
+    botones += '<button type="button" class="chip" data-v="' + escapar(horas[i]) + '" aria-pressed="false">'
+             + escapar(horas[i]) + '</button>';
+  }
+  botones += '<button type="button" class="chip" data-v="' + SIN_VUELTA + '" aria-pressed="false">'
+           + 'No lo necesito</button>';
+
+  return '<fieldset>' +
+           '<legend>Autobús de vuelta</legend>' +
+           '<p class="ayuda">Sale del convento hacia Palencia y Venta de Baños. Dinos con cuál contamos.</p>' +
+           '<div class="chips" id="vuelta">' + botones + '</div>' +
+         '</fieldset>';
+}
+
+/* Exclusiva: solo se vuelve en un autobús. */
+function elegirVuelta(hora) {
+  var caja = document.getElementById('vuelta');
+  if (!caja) return;
+  vuelta = hora;
+  var b = caja.getElementsByTagName('button');
+  for (var i = 0; i < b.length; i++) {
+    b[i].setAttribute('aria-pressed', b[i].getAttribute('data-v') === hora ? 'true' : 'false');
+  }
+}
+
+function seccionTransporte() {
+  var trayectos = TRANSPORTE.trayectos;
+  if (!trayectos || !trayectos.length) return '';
+
+  var html = '';
+  for (var i = 0; i < trayectos.length; i++) {
+    var t = trayectos[i];
+    html += '<div class="trayecto" id="' + escapar(t.id) + '">' +
+              '<h3 class="sub-titulo">' + escapar(t.titulo) + '</h3>' +
+              horasSalida(t.salidas) +
+              ruta(t.paradas) +
+            '</div>';
+  }
+
+  return '<section class="seccion" id="transporte">' +
+           '<h2 class="titulo">Transporte</h2>' +
+           '<div class="trayectos">' + html + '</div>' +
+           (TRANSPORTE.nota
+             ? '<p class="promesa" style="margin-top:2rem">' + escapar(TRANSPORTE.nota) + '</p>'
+             : '') +
+         '</section>';
+}
+
 /* --- secciones en obras --- */
 
 /* Devuelve la sección de EN_OBRAS con ese id, o cadena vacía si ya no está
@@ -1024,6 +1266,7 @@ function pintar(d) {
             '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
             '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
           '</fieldset>' +
+          camposVuelta() +
         '</div>' +
 
         '<fieldset>' +
@@ -1036,7 +1279,7 @@ function pintar(d) {
       '</section>' +
 
       seccionEnObras('playlist') +
-      seccionEnObras('transporte') +
+      seccionTransporte() +
       seccionEnObras('alojamiento') +
       seccionEnObras('sitio-web') +
 
@@ -1055,6 +1298,14 @@ function pintar(d) {
       this.setAttribute('aria-pressed', activo ? 'false' : 'true');
       if (activo) { delete marcados[nombre]; } else { marcados[nombre] = true; }
     };
+  }
+
+  var cajaVuelta = document.getElementById('vuelta');
+  if (cajaVuelta) {
+    var botonesVuelta = cajaVuelta.getElementsByTagName('button');
+    for (var v = 0; v < botonesVuelta.length; v++) {
+      botonesVuelta[v].onclick = function () { elegirVuelta(this.getAttribute('data-v')); };
+    }
   }
 
   arrancarCuenta();
@@ -1165,6 +1416,7 @@ function restaurar(d) {
       }
     }
   }
+  if (d.vuelta) { elegirVuelta(String(d.vuelta)); }
   if (d.nota) { document.getElementById('nota').value = d.nota; }
   if (d.asiste === 'SI') { elegir(true); }
   else if (d.asiste === 'NO') { elegir(false); }
@@ -1204,6 +1456,9 @@ function enviar() {
     token: token,
     asiste: elegido,
     alergenos: elegido ? lista.join(', ') : '',
+    /* Quien no viene no necesita autobús, y si no ha tocado los botones
+       mandamos la celda vacía en vez de inventarle una hora. */
+    vuelta: elegido && vuelta ? vuelta : '',
     nota: document.getElementById('nota').value
   });
 
