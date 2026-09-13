@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#E9E5D9">
-<title>Confirmación de asistencia</title>
+<title>Invitación</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -230,6 +230,29 @@
       transform: translateY(-50%);
     }
     .seccion { scroll-margin-top: 2.5rem; }
+  }
+
+  /* ---------- secciones en obras ---------- */
+
+  .wip-linea { text-align: center; margin: -.5rem 0 1.25rem; }
+
+  .wip {
+    display: inline-block;
+    padding: .2rem .7rem;
+    border: 1px solid var(--hueco);
+    border-radius: 2px;
+    font-size: .6875rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ocre);
+  }
+
+  /* lo que irá aquí cuando la sección deje de estar en obras */
+  .promesa {
+    text-align: center;
+    color: var(--musgo);
+    margin: 0;
+    text-wrap: pretty;
   }
 
   /* ---------- formulario ---------- */
@@ -609,14 +632,45 @@ var BODA = {
   iso:    '2027-07-17T12:30:00+02:00'
 };
 
-/* Índice lateral: el orden manda. Cada `id` tiene que existir en la página o
-   la entrada se descarta sola. Para añadir una sección, crea el
-   <section class="seccion" id="..."> dentro de pintar() y añádela aquí. */
+/* Índice lateral: el orden manda, y es también el orden en que se pintan las
+   secciones. Cada `id` tiene que existir en la página o la entrada se descarta
+   sola. Para añadir una sección, crea el <section class="seccion" id="...">
+   dentro de pintar() (o mete una entrada en EN_OBRAS) y añádela aquí. */
 var SECCIONES = [
-  { id: 'inicio',       titulo: 'Inicio' },
-  { id: 'el-dia',       titulo: 'El día' },
-  { id: 'confirmar',    titulo: 'Confirmar' },
-  { id: 'cuenta-atras', titulo: 'Cuenta atrás' }
+  { id: 'inicio',        titulo: 'Inicio' },
+  { id: 'el-dia',        titulo: 'El día' },
+  { id: 'cuenta-atras',  titulo: 'Cuenta atrás' },
+  { id: 'save-the-date', titulo: 'Save the date' },
+  { id: 'dedicatoria',   titulo: 'Dedicatoria' },
+  { id: 'confirmar',     titulo: 'Confirmar' },
+  { id: 'playlist',      titulo: 'Playlist' },
+  { id: 'transporte',    titulo: 'Transporte' },
+  { id: 'alojamiento',   titulo: 'Alojamiento' },
+  { id: 'sitio-web',     titulo: 'Sitio web' }
+];
+
+/* Secciones todavía en obras: de momento solo enseñan el sello y una promesa.
+   El `id` tiene que coincidir con el de SECCIONES y el orden de arriba es el
+   que manda; estas se pintan solas donde toque. Para rellenar una, bórrala de
+   aquí y escribe su <section> a mano en pintar(). */
+var EN_OBRAS = [
+  { id: 'save-the-date', titulo: 'Save the date',
+    texto: 'Estamos preparando el recordatorio para que guardes la fecha en tu calendario de un toque.' },
+
+  { id: 'dedicatoria', titulo: 'Dedicatoria',
+    texto: 'Aquí irán unas palabras nuestras. Todavía las estamos escribiendo.' },
+
+  { id: 'playlist', titulo: 'Sugerencias de playlist',
+    texto: 'Queremos que suene lo que te haga levantarte de la silla. Pronto podrás proponer canciones.' },
+
+  { id: 'transporte', titulo: 'Transporte',
+    texto: 'Estamos cerrando horarios y puntos de recogida. En cuanto los tengamos, los contamos aquí.' },
+
+  { id: 'alojamiento', titulo: 'Alojamiento',
+    texto: 'Estamos apalabrando habitaciones cerca del convento. Aquí verás los sitios y los precios.' },
+
+  { id: 'sitio-web', titulo: 'Sitio web',
+    texto: 'Habrá una página con todos los detalles de la boda. Sigue en obras.' }
 ];
 
 var ALERGENOS = [
@@ -775,6 +829,22 @@ function seccionCuenta() {
          '</section>';
 }
 
+/* --- secciones en obras --- */
+
+/* Devuelve la sección de EN_OBRAS con ese id, o cadena vacía si ya no está
+   (que es como se apaga: se borra su entrada y se escribe la de verdad). */
+function seccionEnObras(id) {
+  for (var i = 0; i < EN_OBRAS.length; i++) {
+    if (EN_OBRAS[i].id !== id) continue;
+    return '<section class="seccion" id="' + escapar(id) + '">' +
+             '<h2 class="titulo">' + escapar(EN_OBRAS[i].titulo) + '</h2>' +
+             '<p class="wip-linea"><span class="wip">En preparación</span></p>' +
+             '<p class="promesa">' + escapar(EN_OBRAS[i].texto) + '</p>' +
+           '</section>';
+  }
+  return '';
+}
+
 function pararCuenta() {
   if (reloj) { clearInterval(reloj); reloj = null; }
 }
@@ -851,6 +921,10 @@ function pintar(d) {
           : '') +
       '</section>' +
 
+      seccionCuenta() +
+      seccionEnObras('save-the-date') +
+      seccionEnObras('dedicatoria') +
+
       '<section class="seccion" id="confirmar">' +
         '<h2 class="titulo">¿Nos acompañas?</h2>' +
         '<div class="eleccion">' +
@@ -879,7 +953,10 @@ function pintar(d) {
         '<p class="estado" id="estado"></p>' +
       '</section>' +
 
-      seccionCuenta() +
+      seccionEnObras('playlist') +
+      seccionEnObras('transporte') +
+      seccionEnObras('alojamiento') +
+      seccionEnObras('sitio-web') +
 
     '</div>'
   );
