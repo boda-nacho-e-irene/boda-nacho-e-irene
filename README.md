@@ -6,7 +6,8 @@ confirmación en una hoja de Google.
 - Front: este repo, servido por GitHub Pages.
 - Backend: proyecto de Google Apps Script publicado como aplicación web.
 - Datos: hoja de cálculo de Google, pestaña `Invitados`
-  (`token`, `nombre`, `asiste`, `fecha_respuesta`).
+  (`token`, `nombre`, `asiste`, `fecha_respuesta`, `alergenos`, `nota`,
+  `vuelta`).
 
 ## Despliegue
 
@@ -57,6 +58,7 @@ lo segundo, la sección desaparece de la página y el índice descarta su entrad
 
 Los alérgenos no son una sección aparte: van dentro de *Confirmar*, plegados
 hasta que alguien dice que sí, porque comparten el botón de enviar con ella.
+Lo mismo con la elección de autobús de vuelta.
 
 ### Quien no puede venir
 
@@ -77,6 +79,39 @@ En pantallas de 62rem o más el índice es un raíl fijo a la izquierda del text
 por debajo es un panel que se abre con el botón de la esquina superior. La
 sección activa se marca con `aria-current`, midiendo las secciones en cada
 `scroll`: manda la última cuyo borde superior haya pasado el 42% de la pantalla.
+
+## Transporte
+
+La sección la pinta `seccionTransporte()` a partir de la constante
+`TRANSPORTE`: una lista de `trayectos`, cada uno con su `id`, su `titulo`, sus
+horas de `salidas` y sus `paradas` en orden (`lugar` y un `detalle` opcional
+con el punto exacto de recogida). Con `trayectos` vacío no hay sección, igual
+que con las fotos.
+
+Los trayectos se pintan en paralelo —ida a un lado, vuelta al otro, separados
+por una línea fina— en cuanto la pantalla llega a 23rem; por debajo se apilan.
+El `id` de cada uno sirve para enlazarlo directo (`…/?i=TOKEN#transporte-ida`);
+en el índice lateral entra la sección entera, no cada trayecto.
+
+### Elegir autobús de vuelta
+
+El trayecto marcado con `elegible: true` —y con más de una hora en `salidas`—
+saca sus horas como botones dentro de *Confirmar*, junto a los alérgenos, más
+un «No lo necesito». Los pinta `camposVuelta()` y la elección es exclusiva.
+
+Lo elegido viaja a la hoja en el mismo POST que la confirmación, en el campo
+`vuelta`, y acaba en la columna G:
+
+- `21:30` / `23:30` — la hora elegida, tal cual está escrita en `salidas`.
+- `No` — no coge el autobús (la constante `SIN_VUELTA`).
+- Celda vacía — todavía no ha contestado, o no viene.
+
+El backend fuerza formato de texto en esa columna antes de escribir: si no,
+Sheets se queda `21:30` como una hora y deja de coincidir con los botones.
+
+Al cambiar las horas de `salidas` cambian los botones, pero **no** lo ya
+guardado en la hoja: esas respuestas siguen con la hora antigua y hay que
+repasarlas a mano.
 
 ## Fotos
 
