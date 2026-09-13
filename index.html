@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#E9E5D9">
-<title>Confirmación de asistencia</title>
+<title>Invitación</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -74,9 +74,21 @@
   }
   .cita strong { font-weight: 400; color: var(--tinta); }
 
-  /* ---------- formulario ---------- */
+  /* ---------- secciones ---------- */
 
-  .pregunta {
+  .seccion { margin: 0 0 3rem; }
+
+  /* una junta de piedra entre sección y sección */
+  .seccion::before {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 1px;
+    background: var(--hueco);
+    margin: 0 auto 1.75rem;
+  }
+
+  .seccion-titulo {
     font-family: "Cormorant Garamond", Georgia, serif;
     font-size: 1.6rem;
     font-style: italic;
@@ -85,7 +97,58 @@
     margin: 0 0 1.25rem;
   }
 
-  .eleccion { display: grid; gap: .625rem; margin-bottom: 2rem; }
+  .wip-linea { text-align: center; margin: -.5rem 0 1.25rem; }
+
+  .wip {
+    display: inline-block;
+    padding: .2rem .7rem;
+    border: 1px solid var(--hueco);
+    border-radius: 2px;
+    font-size: .6875rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ocre);
+  }
+
+  /* lo que irá aquí cuando la sección deje de estar en obras */
+  .promesa {
+    text-align: center;
+    color: var(--musgo);
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  /* ---------- cuenta atrás ---------- */
+
+  .cuenta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .5rem;
+    text-align: center;
+  }
+
+  .cuenta-num {
+    display: block;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 300;
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cuenta-eti {
+    display: block;
+    font-size: .6875rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--musgo);
+  }
+
+  /* ---------- formulario ---------- */
+
+  .cierre { margin: 0 0 3rem; }
+
+  .eleccion { display: grid; gap: .625rem; margin-bottom: 0; }
 
   button {
     font: inherit;
@@ -118,13 +181,6 @@
   .detalle.abierto { max-height: 70rem; opacity: 1; }
 
   fieldset { border: 0; padding: 0; margin: 0 0 1.75rem; }
-
-  legend {
-    padding: 0;
-    font-size: .9375rem;
-    font-weight: 600;
-    margin-bottom: .25rem;
-  }
 
   .ayuda { font-size: .875rem; color: var(--musgo); margin: 0 0 .875rem; }
 
@@ -400,12 +456,51 @@ var BODA = {
   novios: 'Irene e Ignacio',
   fecha:  '17 de Julio de 2027',
   lugar:  'Convento de Mave, Palencia',
-  hora:   '12:30'
+  hora:   '12:30',
+  // La misma fecha en formato máquina, para la cuenta atrás.
+  // Lleva el desfase horario de España en verano (+02:00) para que la cuenta
+  // sea la misma se mire desde donde se mire.
+  iso:    '2027-07-17T12:30:00+02:00'
 };
 
 var ALERGENOS = [
   'Gluten', 'Lactosa', 'Frutos secos', 'Marisco',
   'Pescado', 'Huevo', 'Soja', 'Vegetariano', 'Vegano'
+];
+
+/* Las secciones de la invitación, en el orden en que se pintan.
+   `tipo` decide qué se dibuja dentro:
+     wip       -> el texto de `texto` con el sello "En preparación"
+     cuenta    -> la cuenta atrás
+     rsvp      -> los botones de sí / no
+     alergenos -> los chips, plegados hasta que alguien dice que sí
+     cierre    -> el mensaje libre y el botón de enviar (sin título)
+   Para rellenar una sección, cambia su `tipo` y añade el código que toque
+   en `secciones()`. */
+var SECCIONES = [
+  { id: 'cuenta', titulo: 'Cuenta atrás', tipo: 'cuenta' },
+
+  { id: 'savedate', titulo: 'Save the date', tipo: 'wip',
+    texto: 'Estamos preparando el recordatorio para que guardes la fecha en tu calendario de un toque.' },
+
+  { id: 'dedicatoria', titulo: 'Dedicatoria', tipo: 'wip',
+    texto: 'Aquí irán unas palabras nuestras. Todavía las estamos escribiendo.' },
+
+  { id: 'rsvp', titulo: 'Confirmación de asistencia', tipo: 'rsvp' },
+  { id: 'alergenos', titulo: 'Alérgenos', tipo: 'alergenos' },
+  { id: 'cierre', tipo: 'cierre' },
+
+  { id: 'playlist', titulo: 'Sugerencias de playlist', tipo: 'wip',
+    texto: 'Queremos que suene lo que te haga levantarte de la silla. Pronto podrás proponer canciones.' },
+
+  { id: 'transporte', titulo: 'Transporte', tipo: 'wip',
+    texto: 'Estamos cerrando horarios y puntos de recogida. En cuanto los tengamos, los contamos aquí.' },
+
+  { id: 'alojamiento', titulo: 'Alojamiento', tipo: 'wip',
+    texto: 'Estamos apalabrando habitaciones cerca del convento. Aquí verás los sitios y los precios.' },
+
+  { id: 'web', titulo: 'Sitio web', tipo: 'wip',
+    texto: 'Habrá una página con todos los detalles de la boda. Sigue en obras.' }
 ];
 /* ======================== */
 
@@ -417,6 +512,7 @@ var token = (function () {
 
 var elegido = null;          // true | false | null
 var marcados = {};           // alérgenos seleccionados
+var reloj = null;            // intervalo de la cuenta atrás
 
 /* --- el sobre: tapa la página hasta que el invitado la toca --- */
 
@@ -518,49 +614,7 @@ function cargar() {
 }
 
 function pintar(d) {
-  var chips = '';
-  for (var i = 0; i < ALERGENOS.length; i++) {
-    chips += '<button type="button" class="chip" data-a="' + escapar(ALERGENOS[i]) + '" aria-pressed="false">'
-           + escapar(ALERGENOS[i]) + '</button>';
-  }
-
-  pantalla(
-    '<div id="contenido">' +
-      '<svg class="arco" viewBox="0 0 120 132" aria-hidden="true">' +
-        '<path d="M4 130 L4 64 A56 56 0 0 1 116 64 L116 130"/>' +
-      '</svg>' +
-      '<p class="novios">' + escapar(BODA.novios) + '</p>' +
-      '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
-      '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong><br>' +
-        'a las ' + escapar(BODA.hora) + ' en ' + escapar(BODA.lugar) + '</p>' +
-
-      '<p class="pregunta">¿Nos acompañas?</p>' +
-      '<div class="eleccion">' +
-        '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
-        '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
-      '</div>' +
-
-      '<div class="detalle" id="detalle">' +
-        '<fieldset>' +
-          '<legend>Alergias e intolerancias</legend>' +
-          '<p class="ayuda">Marca lo que necesites. Se lo pasamos tal cual a la cocina.</p>' +
-          '<div class="chips" id="chips">' + chips + '</div>' +
-        '</fieldset>' +
-        '<fieldset>' +
-          '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
-          '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
-        '</fieldset>' +
-      '</div>' +
-
-      '<fieldset>' +
-        '<label class="campo" for="nota">Un mensaje para nosotros</label>' +
-        '<textarea id="nota" placeholder="Opcional"></textarea>' +
-      '</fieldset>' +
-
-      '<button type="button" class="enviar" id="enviar" disabled>Enviar confirmación</button>' +
-      '<p class="estado" id="estado"></p>' +
-    '</div>'
-  );
+  pantalla('<div id="contenido">' + portada(d) + secciones() + '</div>');
 
   document.getElementById('si').onclick = function () { elegir(true); };
   document.getElementById('no').onclick = function () { elegir(false); };
@@ -576,7 +630,146 @@ function pintar(d) {
     };
   }
 
+  arrancarCuenta();
   restaurar(d);
+}
+
+function portada(d) {
+  return '<svg class="arco" viewBox="0 0 120 132" aria-hidden="true">' +
+           '<path d="M4 130 L4 64 A56 56 0 0 1 116 64 L116 130"/>' +
+         '</svg>' +
+         '<p class="novios">' + escapar(BODA.novios) + '</p>' +
+         '<h1 class="nombre">' + escapar(d.nombre) + '</h1>' +
+         '<p class="cita">Nos casamos el <strong>' + escapar(BODA.fecha) + '</strong><br>' +
+           'a las ' + escapar(BODA.hora) + ' en ' + escapar(BODA.lugar) + '</p>';
+}
+
+/* --- secciones --- */
+
+function marco(s, cuerpo, enObras) {
+  return '<section class="seccion" id="sec-' + escapar(s.id) + '">' +
+           '<h2 class="seccion-titulo">' + escapar(s.titulo) + '</h2>' +
+           (enObras ? '<p class="wip-linea"><span class="wip">En preparación</span></p>' : '') +
+           cuerpo +
+         '</section>';
+}
+
+function secciones() {
+  var html = '';
+  for (var i = 0; i < SECCIONES.length; i++) {
+    var s = SECCIONES[i];
+    if (s.tipo === 'wip') {
+      html += marco(s, '<p class="promesa">' + escapar(s.texto) + '</p>', true);
+    } else if (s.tipo === 'cuenta') {
+      html += marco(s, cuerpoCuenta(), false);
+    } else if (s.tipo === 'rsvp') {
+      html += marco(s, cuerpoRsvp(), false);
+    } else if (s.tipo === 'alergenos') {
+      // El envoltorio es lo que se pliega: así la sección entera (título y
+      // junta incluidos) desaparece mientras nadie haya dicho que sí.
+      html += '<div class="detalle" id="detalle">' + marco(s, cuerpoAlergenos(), false) + '</div>';
+    } else if (s.tipo === 'cierre') {
+      html += cuerpoCierre();
+    }
+  }
+  return html;
+}
+
+function cuerpoCuenta() {
+  var unidades = [['dias', 'Días'], ['horas', 'Horas'], ['min', 'Minutos'], ['seg', 'Segundos']];
+  var html = '<div class="cuenta" id="cuenta">';
+  for (var i = 0; i < unidades.length; i++) {
+    html += '<div>' +
+              '<span class="cuenta-num" id="cuenta-' + unidades[i][0] + '">–</span>' +
+              '<span class="cuenta-eti">' + unidades[i][1] + '</span>' +
+            '</div>';
+  }
+  return html + '</div>';
+}
+
+function cuerpoRsvp() {
+  return '<div class="eleccion">' +
+           '<button type="button" class="opcion" id="si" aria-pressed="false">Sí, allí estaré</button>' +
+           '<button type="button" class="opcion" id="no" aria-pressed="false">No podré ir</button>' +
+         '</div>';
+}
+
+function cuerpoAlergenos() {
+  var chips = '';
+  for (var i = 0; i < ALERGENOS.length; i++) {
+    chips += '<button type="button" class="chip" data-a="' + escapar(ALERGENOS[i]) + '" aria-pressed="false">' +
+             escapar(ALERGENOS[i]) + '</button>';
+  }
+  return '<fieldset>' +
+           '<p class="ayuda">Marca lo que necesites. Se lo pasamos tal cual a la cocina.</p>' +
+           '<div class="chips" id="chips">' + chips + '</div>' +
+         '</fieldset>' +
+         '<fieldset>' +
+           '<label class="campo" for="otros">Otra cosa que debamos saber</label>' +
+           '<input type="text" id="otros" placeholder="Otra alergia, medicación, lo que sea">' +
+         '</fieldset>';
+}
+
+function cuerpoCierre() {
+  return '<div class="cierre">' +
+           '<fieldset>' +
+             '<label class="campo" for="nota">Un mensaje para nosotros</label>' +
+             '<textarea id="nota" placeholder="Opcional"></textarea>' +
+           '</fieldset>' +
+           '<button type="button" class="enviar" id="enviar" disabled>Enviar confirmación</button>' +
+           '<p class="estado" id="estado"></p>' +
+         '</div>';
+}
+
+/* --- cuenta atrás --- */
+
+/* BODA.iso a milisegundos. Lo parseamos a mano en vez de fiarlo a Date:
+   los navegadores viejos no se ponen de acuerdo con el desfase horario. */
+function fechaBoda() {
+  var m = String(BODA.iso).match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:([+-])(\d{2}):(\d{2}))?$/);
+  if (!m) return NaN;
+  var t = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
+  if (m[7]) {
+    var desfase = (+m[8] * 60 + +m[9]) * 60000;
+    t += (m[7] === '+' ? -desfase : desfase);
+  }
+  return t;
+}
+
+function dosCifras(n) { return (n < 10 ? '0' : '') + n; }
+
+function arrancarCuenta() {
+  var caja = document.getElementById('cuenta');
+  var destino = fechaBoda();
+  if (!caja || isNaN(destino)) return;
+
+  if (reloj) { clearInterval(reloj); reloj = null; }
+
+  var dias  = document.getElementById('cuenta-dias');
+  var horas = document.getElementById('cuenta-horas');
+  var min   = document.getElementById('cuenta-min');
+  var seg   = document.getElementById('cuenta-seg');
+
+  function tic() {
+    var falta = destino - new Date().getTime();
+    if (falta > 0) {
+      var s = Math.floor(falta / 1000);
+      dias.textContent  = Math.floor(s / 86400);
+      horas.textContent = dosCifras(Math.floor(s % 86400 / 3600));
+      min.textContent   = dosCifras(Math.floor(s % 3600 / 60));
+      seg.textContent   = dosCifras(s % 60);
+      return;
+    }
+    clearInterval(reloj);
+    reloj = null;
+    caja.className = '';
+    caja.innerHTML = '<p class="promesa">' +
+      (falta > -86400000 ? 'Hoy es el día.' : 'Gracias por acompañarnos.') + '</p>';
+  }
+
+  tic();
+  reloj = setInterval(tic, 1000);
 }
 
 /* Si ya había respondido antes, dejamos su respuesta puesta. */
