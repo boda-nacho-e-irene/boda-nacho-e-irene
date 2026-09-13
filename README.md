@@ -37,8 +37,11 @@ es `{ id, titulo }` y se descarta sola si ese `id` no existe en la página.
 Para añadir una sección: crea el `<section>` dentro de `pintar()` y añade su
 entrada a `SECCIONES` en el mismo orden en que aparece.
 
-Orden actual: inicio, fotos, el día, cuenta atrás, save the date, dedicatoria,
-confirmar, playlist, transporte, alojamiento, sitio web.
+Orden actual: inicio, fotos, el día, confirmar, cuenta atrás, save the date,
+dedicatoria, playlist, transporte, alojamiento, sitio web.
+
+*Confirmar* va arriba a propósito: es lo único que necesitamos de verdad, y así
+se responde sin bajar por toda la invitación.
 
 ### Secciones en obras
 
@@ -54,6 +57,21 @@ lo segundo, la sección desaparece de la página y el índice descarta su entrad
 
 Los alérgenos no son una sección aparte: van dentro de *Confirmar*, plegados
 hasta que alguien dice que sí, porque comparten el botón de enviar con ella.
+
+### Quien no puede venir
+
+Al pulsar *No podré ir* desaparecen de la página y del índice todas las
+secciones posteriores a *Confirmar* (cuenta atrás incluida, y su reloj se
+para). Se quedan la portada, las fotos, el día y la propia confirmación con su
+*Un mensaje para nosotros*, para que pueda escribirnos igualmente. Si cambia de
+idea y pulsa *Sí, allí estaré*, vuelve todo.
+
+La lista de lo que se esconde no está escrita a mano: `seccionesTrasConfirmar()`
+la saca de `SECCIONES`, así que mover una sección en esa constante basta para
+cambiar de qué lado del corte queda.
+
+Cada opción enciende además un subtítulo bajo los botones, con los textos de la
+constante `RESPUESTAS`.
 
 En pantallas de 62rem o más el índice es un raíl fijo a la izquierda del texto;
 por debajo es un panel que se abre con el botón de la esquina superior. La
