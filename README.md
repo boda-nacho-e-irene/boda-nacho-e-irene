@@ -34,3 +34,16 @@ implementación** (o subir versión en la existente); guardar el `.gs` no basta.
 - `robots.txt` y el `<meta robots>` evitan que los enlaces acaben indexados.
 - El POST se manda con `Content-Type: text/plain` a propósito: `application/json`
   dispara el preflight CORS, que Apps Script no responde.
+## Secciones e índice lateral
+
+La invitación es una sola página partida en `<section class="seccion" id="...">`.
+El índice se genera desde la constante `SECCIONES` del `<script>`: cada entrada
+es `{ id, titulo }` y se descarta sola si ese `id` no existe en la página.
+
+Para añadir una sección: crea el `<section>` dentro de `pintar()` y añade su
+entrada a `SECCIONES` en el mismo orden en que aparece.
+
+En pantallas de 62rem o más el índice es un raíl fijo a la izquierda del texto;
+por debajo es un panel que se abre con el botón de la esquina superior. La
+sección activa se marca con `aria-current` y se calcula con `IntersectionObserver`
+(con respaldo por `scroll` para navegadores que no lo tengan).
