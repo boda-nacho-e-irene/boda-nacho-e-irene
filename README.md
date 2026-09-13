@@ -37,7 +37,7 @@ es `{ id, titulo }` y se descarta sola si ese `id` no existe en la página.
 Para añadir una sección: crea el `<section>` dentro de `pintar()` y añade su
 entrada a `SECCIONES` en el mismo orden en que aparece.
 
-Orden actual: inicio, el día, cuenta atrás, save the date, dedicatoria,
+Orden actual: inicio, fotos, el día, cuenta atrás, save the date, dedicatoria,
 confirmar, playlist, transporte, alojamiento, sitio web.
 
 ### Secciones en obras
@@ -59,6 +59,37 @@ En pantallas de 62rem o más el índice es un raíl fijo a la izquierda del text
 por debajo es un panel que se abre con el botón de la esquina superior. La
 sección activa se marca con `aria-current`, midiendo las secciones en cada
 `scroll`: manda la última cuyo borde superior haya pasado el 42% de la pantalla.
+
+## Fotos
+
+La sección *Fotos* la pinta `seccionFotos()` a partir de la constante `FOTOS`
+del `<script>` de `index.html`. Con la lista vacía no hay sección y el índice
+descarta su entrada él solo, igual que con la cuenta atrás.
+
+Los archivos van en `img/`, en `.webp`:
+
+- Nombres en minúscula, sin espacios ni acentos: acaban en una URL.
+- Ruta relativa (`img/foo.webp`). La absoluta da 404 en repos de proyecto,
+  igual que la barra antes del `?`.
+- 1200 px de ancho sobran: la columna mide 432 px como mucho, 864 px en
+  pantallas 2x. Menos de 200 KB por foto; los invitados la abren con datos.
+- `ancho` y `alto` son los píxeles reales del archivo. Sin ellos la página
+  da saltos según van cargando.
+- `pie` es opcional; si está, la foto se envuelve en un `<figure>`.
+
+La primera foto se pide en cuanto se pinta la página y las demás esperan a que
+el invitado baje hasta ellas. Descomentando el `<link rel="preload">` del
+`<head>` con la ruta de la primera, esa empieza a bajar sin esperar al backend.
+
+Convertir y quitar EXIF (las fotos de móvil llevan las coordenadas GPS de
+casa) de una tacada, con ImageMagick:
+
+```
+magick mogrify -path img -resize 1200x1200\> -quality 75 -strip -format webp originales/*.jpg
+```
+
+El `<meta robots>` mantiene la página fuera de los buscadores, pero
+cualquiera con la URL puede descargar las fotos directamente.
 
 ## Notas
 
