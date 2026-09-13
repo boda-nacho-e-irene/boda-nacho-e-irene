@@ -37,6 +37,24 @@ es `{ id, titulo }` y se descarta sola si ese `id` no existe en la página.
 Para añadir una sección: crea el `<section>` dentro de `pintar()` y añade su
 entrada a `SECCIONES` en el mismo orden en que aparece.
 
+Orden actual: inicio, el día, cuenta atrás, save the date, dedicatoria,
+confirmar, playlist, transporte, alojamiento, sitio web.
+
+### Secciones en obras
+
+Las que todavía no tienen contenido viven en la constante `EN_OBRAS`
+(`{ id, titulo, texto }`) y las pinta `seccionEnObras(id)`: título, el sello
+*En preparación* y el texto provisional. Siguen apareciendo en el índice como
+cualquier otra.
+
+Para rellenar una: borra su entrada de `EN_OBRAS` y escribe su `<section>` a
+mano en `pintar()`, en el mismo sitio donde estaba la llamada. Si se te olvida
+lo segundo, la sección desaparece de la página y el índice descarta su entrada
+él solo; no se rompe nada.
+
+Los alérgenos no son una sección aparte: van dentro de *Confirmar*, plegados
+hasta que alguien dice que sí, porque comparten el botón de enviar con ella.
+
 En pantallas de 62rem o más el índice es un raíl fijo a la izquierda del texto;
 por debajo es un panel que se abre con el botón de la esquina superior. La
 sección activa se marca con `aria-current`, midiendo las secciones en cada
