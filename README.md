@@ -28,12 +28,6 @@ La constante `API` al principio del `<script>` de `index.html` apunta a la URL
 `/exec` del Apps Script. Al cambiar el backend hay que **crear una nueva
 implementación** (o subir versión en la existente); guardar el `.gs` no basta.
 
-## Notas
-
-- El token va en el parámetro `i` y es la única credencial. Nada sensible en esta página.
-- `robots.txt` y el `<meta robots>` evitan que los enlaces acaben indexados.
-- El POST se manda con `Content-Type: text/plain` a propósito: `application/json`
-  dispara el preflight CORS, que Apps Script no responde.
 ## Secciones e índice lateral
 
 La invitación es una sola página partida en `<section class="seccion" id="...">`.
@@ -45,5 +39,16 @@ entrada a `SECCIONES` en el mismo orden en que aparece.
 
 En pantallas de 62rem o más el índice es un raíl fijo a la izquierda del texto;
 por debajo es un panel que se abre con el botón de la esquina superior. La
-sección activa se marca con `aria-current` y se calcula con `IntersectionObserver`
-(con respaldo por `scroll` para navegadores que no lo tengan).
+sección activa se marca con `aria-current`, midiendo las secciones en cada
+`scroll`: manda la última cuyo borde superior haya pasado el 42% de la pantalla.
+
+## Notas
+
+- Al abrir, un sobre cerrado tapa la página hasta que el invitado toca. Lleva su
+  nombre escrito en cuanto responde el backend. La invitación se pinta detrás
+  mientras tanto; su animación de entrada espera a que el sobre se aparte.
+  Con `prefers-reduced-motion` el sobre desaparece al primer toque, sin animación.
+- El token va en el parámetro `i` y es la única credencial. Nada sensible en esta página.
+- `robots.txt` y el `<meta robots>` evitan que los enlaces acaben indexados.
+- El POST se manda con `Content-Type: text/plain` a propósito: `application/json`
+  dispara el preflight CORS, que Apps Script no responde.
