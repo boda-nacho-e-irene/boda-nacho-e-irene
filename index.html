@@ -1491,12 +1491,52 @@ function ajustarAlcance(asiste) {
   montarIndice();
 }
 
-function pintar(d) {
-  var chips = '';
+/* Lo que se guarda cuando el invitado no tiene ninguna alergia: así la celda
+   de la hoja distingue «no necesita nada» de «todavía no lo ha dicho», y el
+   formulario se puede dejar completo sin marcar alérgenos falsos. */
+var SIN_ALERGIAS = 'Ninguna';
+
+/* Los alérgenos, y al final la salida para quien no tiene ninguno. */
+function chipsAlergenos() {
+  var botones = '';
   for (var i = 0; i < ALERGENOS.length; i++) {
-    chips += '<button type="button" class="chip" data-a="' + escapar(ALERGENOS[i]) + '" aria-pressed="false">'
-           + escapar(ALERGENOS[i]) + '</button>';
+    botones += '<button type="button" class="chip" data-a="' + escapar(ALERGENOS[i]) + '" aria-pressed="false">'
+             + escapar(ALERGENOS[i]) + '</button>';
   }
+  botones += '<button type="button" class="chip" data-a="' + escapar(SIN_ALERGIAS) + '" aria-pressed="false">'
+           + 'Ninguna</button>';
+  return botones;
+}
+
+/* «Ninguna» no convive con nada: marcarla limpia el resto, y marcar cualquier
+   alérgeno la apaga. Así nunca sale a la cocina una lista que se contradice. */
+function alternarAlergeno(boton) {
+  var caja = document.getElementById('chips');
+  var nombre = boton.getAttribute('data-a');
+  var activo = boton.getAttribute('aria-pressed') === 'true';
+
+  if (activo) {
+    boton.setAttribute('aria-pressed', 'false');
+    delete marcados[nombre];
+    return;
+  }
+
+  var b = caja.getElementsByTagName('button');
+  for (var i = 0; i < b.length; i++) {
+    var otro = b[i].getAttribute('data-a');
+    var choca = (nombre === SIN_ALERGIAS) ? otro !== SIN_ALERGIAS : otro === SIN_ALERGIAS;
+    if (choca) {
+      b[i].setAttribute('aria-pressed', 'false');
+      delete marcados[otro];
+    }
+  }
+
+  boton.setAttribute('aria-pressed', 'true');
+  marcados[nombre] = true;
+}
+
+function pintar(d) {
+  var chips = chipsAlergenos();
 
   pantalla(
     '<div id="contenido">' +
@@ -1576,12 +1616,7 @@ function pintar(d) {
 
   var botonesChip = document.getElementById('chips').getElementsByTagName('button');
   for (var j = 0; j < botonesChip.length; j++) {
-    botonesChip[j].onclick = function () {
-      var nombre = this.getAttribute('data-a');
-      var activo = this.getAttribute('aria-pressed') === 'true';
-      this.setAttribute('aria-pressed', activo ? 'false' : 'true');
-      if (activo) { delete marcados[nombre]; } else { marcados[nombre] = true; }
-    };
+    botonesChip[j].onclick = function () { alternarAlergeno(this); };
   }
 
   var cajaVuelta = document.getElementById('vuelta');
@@ -1750,9 +1785,15 @@ function enviar() {
   estado.className = 'estado';
   estado.textContent = 'Guardando…';
 
-  var lista = [];
-  for (var k in marcados) { if (marcados.hasOwnProperty(k)) lista.push(k); }
   var otros = document.getElementById('otros').value.replace(/^\s+|\s+$/g, '');
+  var lista = [];
+  for (var k in marcados) {
+    if (!marcados.hasOwnProperty(k)) continue;
+    /* Si nos cuenta algo por escrito, «Ninguna» ya no vale como respuesta:
+       la quitamos para que la hoja no diga las dos cosas a la vez. */
+    if (k === SIN_ALERGIAS && otros) continue;
+    lista.push(k);
+  }
   if (otros) lista.push(otros);
 
   var cuerpo = JSON.stringify({
