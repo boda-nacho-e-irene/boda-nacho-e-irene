@@ -554,7 +554,8 @@
 
   .subtitulo { font-size: .9375rem; font-weight: 600; margin: 0 0 .5rem; }
 
-  .mis-canciones { list-style: none; margin: 0; padding: 0; }
+  /* Va encima del buscador, así que necesita el mismo aire que un fieldset. */
+  .mis-canciones { list-style: none; margin: 0 0 1.75rem; padding: 0; }
   .mis-canciones li {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -835,7 +836,7 @@ window.onerror = function (msg, src, linea) {
 
 <script>
 /* ====== EDITA ESTO ====== */
-const API = 'https://script.google.com/macros/s/AKfycbzRKFxanuuyYgMC9aGoi7N7Tcc9DQh87MlCwkAI1azH2oKTixYahhLtAIxfvr4EKA_oyQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxgaJDj8g97VHfoSDT7qPiOqBnx92-OVjUKvFIwARfpjo_lmUcrLF1jYteHPtzHHrhGtA/exec';
 
 var BODA = {
   novios: 'Irene e Ignacio',
@@ -1350,13 +1351,13 @@ function seccionPlaylist() {
            '<h2 class="titulo">Pon tú la música</h2>' +
            '<p class="ayuda">Busca hasta ' + MAX_CANCIONES + ' canciones y te las apuntamos. ' +
              'Si añades una más, sustituye a la más antigua.</p>' +
+           '<h3 class="subtitulo">Tus canciones</h3>' +
+           '<ul class="mis-canciones" id="mis-canciones"></ul>' +
            '<fieldset>' +
              '<label class="campo" for="buscar">Busca una canción</label>' +
              '<input type="search" id="buscar" placeholder="Título o artista" autocomplete="off">' +
            '</fieldset>' +
            '<div class="resultados" id="resultados" aria-live="polite"></div>' +
-           '<h3 class="subtitulo">Tus canciones</h3>' +
-           '<ul class="mis-canciones" id="mis-canciones"></ul>' +
            '<p class="estado" id="estado-musica" role="status" aria-live="polite"></p>' +
          '</section>';
 }
@@ -1420,6 +1421,15 @@ function limpiarHallazgos() {
   hallazgos = [];
   var caja = document.getElementById('resultados');
   if (caja) { caja.innerHTML = ''; }
+}
+
+/* Con la canción ya apuntada arriba, la búsqueda que la encontró sobra: se
+   vacía para empezar la siguiente en limpio. */
+function limpiarBusqueda() {
+  if (buscador) { clearTimeout(buscador); buscador = null; }
+  var campo = document.getElementById('buscar');
+  if (campo) { campo.value = ''; }
+  limpiarHallazgos();
 }
 
 function buscarEnItunes(texto) {
@@ -1491,12 +1501,15 @@ function anadirCancion(c) {
     pintarMisCanciones();
 
     if (d.repetida) {
+      // No se ha apuntado nada: le dejamos los resultados por si quiere otra.
       estadoMusica('Esa ya la tenías apuntada.');
-    } else if (d.quitada) {
-      estadoMusica('Apuntada. Hemos quitado «' + d.quitada.cancion + '» para hacerle sitio.');
-    } else {
-      estadoMusica('Apuntada.');
+      return;
     }
+
+    limpiarBusqueda();
+    estadoMusica(d.quitada
+      ? 'Apuntada. Hemos quitado «' + d.quitada.cancion + '» para hacerle sitio.'
+      : 'Apuntada.');
   });
 }
 
